@@ -24,21 +24,21 @@ jobs:
       - name: Compile Installer (.exe)
         run: |
           $cscPath = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-          & $cscPath /target:winexe /resource:manifest.xml /out:Install-ReySkripsi.exe Installer.cs
+          & $cscPath /target:winexe /resource:manifest.xml /out:reyskripsi-manager.exe Installer.cs
         shell: powershell
           
       - name: Commit and Push Updated Installer
         if: startsWith(github.ref, 'refs/tags/') == false
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: auto-compile Install-ReySkripsi.exe"
-          file_pattern: 'Install-ReySkripsi.exe'
+          commit_message: "chore: auto-compile reyskripsi-manager.exe"
+          file_pattern: 'reyskripsi-manager.exe'
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: Install-ReySkripsi.exe
+          files: reyskripsi-manager.exe
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
