@@ -44,6 +44,7 @@ Anda tidak perlu lagi melakukan setup Shared Folder atau Trust Center secara man
 4. Buka aplikasi **Microsoft Word**, lalu buat dokumen kosong (Blank Document).
 5. Pergi ke tab **Home** (atau Insert) > klik **Add-ins** > lalu cari menu **Developer Add-ins** (atau _My Add-ins_).
 6. Klik **ReySkripsi** untuk membukanya di panel samping (Taskpane).
+7. *Catatan:* Jika muncul jendela pop-up **"Debug Event-based handler"**, klik tombol **Cancel** agar pesan tersebut tidak muncul lagi.
 
 <p align="center">
   <img src="assets/tutorial/tutorial-1.png" alt="Tutorial Install" width="700">
