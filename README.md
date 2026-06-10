@@ -53,6 +53,10 @@ Anda tidak perlu lagi melakukan setup Shared Folder atau Trust Center secara man
 ### Cara Uninstall
 Buka kembali aplikasi `reyskripsi-manager.exe` lalu klik tombol **Uninstall**. Add-in akan otomatis terhapus bersih dari sistem Anda.
 
+<p align="center">
+  <img src="assets/tutorial/tutorial-1.png" alt="Tutorial Uninstall" width="700">
+</p>
+
 ---
 
 ## Panduan Instalasi (Word di Web)
