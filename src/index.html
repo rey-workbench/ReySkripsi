@@ -243,13 +243,11 @@
     </div>
 
     <div class="article-content">
-      <p><strong>ReySkripsi</strong> adalah Microsoft Word Add-in khusus yang dirancang untuk mempermudah dan mempercepat proses penulisan skripsi, tesis, maupun karya ilmiah lainnya. Dengan fitur pemformatan otomatis dan pengelolaan dokumen yang terintegrasi, ReySkripsi membantu mahasiswa fokus pada isi tulisan tanpa harus pusing memikirkan format margin, tata letak, atau standar penulisan kampus.</p>
+    <div class="article-content">
+      <p><strong>ReySkripsi</strong> adalah Microsoft Word Add-in yang dirancang untuk mempermudah penulisan skripsi, tesis, maupun karya ilmiah. Fitur utama alat ini adalah kemampuannya untuk <strong>mendeteksi dan memiringkan (italicize) kata-kata asing</strong> secara otomatis berdasarkan Kamus Besar Bahasa Indonesia (KBBI). Dengan ReySkripsi, Anda tidak perlu lagi menghabiskan waktu mencari dan memiringkan kata bahasa asing satu per satu secara manual.</p>
       
-      <h2>Langkah Instalasi (Sideload)</h2>
-      <p>Artikel ini menjelaskan cara memuat (sideload) add-in ReySkripsi menggunakan file <code>manifest.xml</code> ke dalam Microsoft Word Anda. Metode ini berguna karena saat ini ReySkripsi dibagikan secara langsung tanpa melalui Windows AppSource.</p>
-      
-      <h2 style="margin-top: 40px;">Demo Aplikasi</h2>
-      <p>Berikut adalah tampilan fitur dan kemampuan ReySkripsi saat digunakan di Microsoft Word:</p>
+      <h2 style="margin-top: 40px;">Fitur & Tampilan Aplikasi</h2>
+      <p>Berikut adalah tampilan antarmuka ReySkripsi saat digunakan langsung di dalam Microsoft Word Anda:</p>
       
       <style>
         .carousel-container {
@@ -285,6 +283,7 @@
 
       <div class="carousel-container">
         <div class="carousel-track">
+          <img src="/assets/demo/demo-1.png" alt="Demo 1">
           <img src="/assets/demo/demo-2.png" alt="Demo 2">
           <img src="/assets/demo/demo-3.png" alt="Demo 3">
           <img src="/assets/demo/demo-4.png" alt="Demo 4">
@@ -292,13 +291,8 @@
         </div>
       </div>
 
-      <h2>Cara Instalasi Offline</h2>
-      <div class="alert" style="border-left: 4px solid #d13438; padding: 16px; background-color: #fdf6f6; margin-bottom: 24px;">
-        <strong>Perhatian:</strong>
-        Untuk menginstal add-in di Word Desktop, Anda tidak dapat menggunakan URL HTTPS langsung. Anda harus menggunakan <strong>Folder Jaringan Bersama (Katalog Tepercaya)</strong>.
-      </div>
-
-      <p>Sebelum melanjutkan, cukup unduh <strong>satu file installer</strong> di bawah ini. File ini sudah termasuk manifest Add-in di dalamnya sehingga Anda tidak perlu mengunduh file apa pun lagi secara terpisah.</p>
+      <h2>Unduh & Instal Aplikasi</h2>
+      <p>Untuk mulai menggunakan ReySkripsi di komputer Anda, silakan unduh aplikasi <strong>ReySkripsi Manager</strong> melalui tombol di bawah ini. Aplikasi ini dirancang agar proses pemasangan menjadi sangat mudah cukup dengan beberapa klik.</p>
       
       <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
         <a href="/reyskripsi-manager.exe" class="btn-download" download>Unduh reyskripsi-manager.exe</a>
@@ -313,7 +307,7 @@
 
             <!-- Tab Desktop -->
             <div id="tab-desktop" class="tab-content active">
-              <p>Ikuti langkah-langkah berikut untuk menginstal Add-in ReySkripsi di Word Desktop (Windows) dengan cepat tanpa perlu melakukan konfigurasi <i>Trust Center</i> secara manual:</p>
+              <p>Ikuti langkah-langkah berikut untuk memasang ReySkripsi di Microsoft Word Desktop (Windows) Anda:</p>
               <div class="tutorial-step" style="border-left-color: #107c41;">
                 <ol>
                   <li>Unduh aplikasi <code>reyskripsi-manager.exe</code> dari tombol di atas. Anda bisa menyimpannya di folder mana saja.</li>
@@ -321,10 +315,10 @@
                   <li>Jendela Installer akan muncul. Klik tombol <strong>Install Add-in</strong> dan tunggu notifikasi sukses.
                     <br><img src="/assets/demo/demo-1.png" alt="Tutorial Install" style="max-width: 450px; border-radius: 8px; margin-top: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                   </li>
-                  <li>Buka aplikasi <strong>Microsoft Word</strong>, lalu buat dokumen kosong (Blank Document).</li>
-                  <li>Pergi ke tab <strong>Home</strong> (atau Insert) > klik <strong>Add-ins</strong> > lalu cari menu <strong>Developer Add-ins</strong> (atau <i>My Add-ins</i>).</li>
-                  <li>Klik <strong>ReySkripsi</strong> untuk membukanya di panel samping (Taskpane).</li>
-                  <li><em>Catatan:</em> Jika muncul jendela pop-up <strong>"Debug Event-based handler"</strong> seperti gambar di bawah, klik saja tombol <strong>Cancel</strong> agar jendela tersebut tidak muncul lagi di kemudian hari.
+                  <li>Buka aplikasi <strong>Microsoft Word</strong>, lalu buat dokumen kosong baru.</li>
+                  <li>Pergi ke tab <strong>Home</strong> (Beranda) > klik menu <strong>Add-ins</strong> > lalu pilih <strong>My Add-ins</strong> (Add-in Saya).</li>
+                  <li>Klik ikon <strong>ReySkripsi</strong> untuk membuka panel di sebelah kanan.</li>
+                  <li><em>Catatan:</em> Jika sewaktu-waktu muncul pesan notifikasi <strong>"Debug Event-based handler"</strong> (seperti gambar di bawah), abaikan saja dengan mengklik tombol <strong>Cancel</strong>.
                     <br><img src="/assets/tutorial/tutorial-1.png" alt="Debug Popup" style="max-width: 300px; border-radius: 8px; margin-top: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                   </li>
                 </ol>
@@ -333,15 +327,15 @@
 
             <!-- Tab Web -->
             <div id="tab-web" class="tab-content">
-              <p>Jika Anda lebih suka menggunakan versi browser web, prosesnya jauh lebih sederhana:</p>
+              <p>Jika Anda menggunakan Microsoft Word versi Web (melalui browser), proses pemasangannya sedikit berbeda:</p>
               <div class="tutorial-step" style="border-left-color: #107c41;">
                 <ol>
-                  <li>Buka <a href="https://word.office.com" target="_blank" rel="noopener noreferrer" style="color:var(--ms-blue)">Word di Web</a> dan buat dokumen kosong baru.</li>
-                  <li>Pergi ke tab <strong>Home</strong> atau <strong>Insert</strong> pada pita menu.</li>
-                  <li>Klik tombol <strong>Add-ins</strong>.</li>
-                  <li>Pada dialog Office Add-ins, pilih <strong>Upload My Add-in</strong> (Unggah Add-in Saya).</li>
-                  <li>Pilih file <code>manifest.xml</code> yang baru saja Anda unduh dan klik <strong>Upload</strong>.</li>
-                  <li>Add-in akan muncul di tab Home atau sebagai panel tugas di sebelah kanan.</li>
+                  <li>Buka situs <a href="https://word.office.com" target="_blank" rel="noopener noreferrer" style="color:var(--ms-blue)">Word di Web</a> dan buat dokumen baru.</li>
+                  <li>Pilih tab <strong>Home</strong> (Beranda) atau <strong>Insert</strong> (Sisipkan) di bagian atas.</li>
+                  <li>Klik menu <strong>Add-ins</strong>.</li>
+                  <li>Pada jendela yang muncul, pilih <strong>Upload My Add-in</strong> (Unggah Add-in Saya).</li>
+                  <li>Pilih file <code>manifest.xml</code> yang bisa Anda temukan di folder source code GitHub, lalu klik <strong>Upload</strong>.</li>
+                  <li>ReySkripsi kini siap digunakan di panel kanan dokumen Anda.</li>
                 </ol>
               </div>
             </div>
