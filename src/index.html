@@ -248,11 +248,20 @@
       <h2>Langkah Instalasi (Sideload)</h2>
       <p>Artikel ini menjelaskan cara memuat (sideload) add-in ReySkripsi menggunakan file <code>manifest.xml</code> ke dalam Microsoft Word Anda. Metode ini berguna karena saat ini ReySkripsi dibagikan secara langsung tanpa melalui Windows AppSource.</p>
       
-      <div class="ms-note">
-        <div class="ms-note-title">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--ms-blue)"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-3.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm.5 3v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 1 0z"/></svg>
-          Catatan
-        </div>
+      <h2 style="margin-top: 40px;">Demo Aplikasi</h2>
+      <p>Berikut adalah tampilan fitur dan kemampuan ReySkripsi saat digunakan di Microsoft Word:</p>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px;">
+        <img src="/assets/demo/demo-1.png" alt="Demo 1" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <img src="/assets/demo/demo-2.png" alt="Demo 2" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <img src="/assets/demo/demo-3.png" alt="Demo 3" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <img src="/assets/demo/demo-4.png" alt="Demo 4" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <img src="/assets/demo/demo-5.png" alt="Demo 5" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      </div>
+
+      <h2>Cara Instalasi Offline</h2>
+      <div class="alert" style="border-left: 4px solid #d13438; padding: 16px; background-color: #fdf6f6; margin-bottom: 24px;">
+        <strong>Perhatian:</strong>
         Untuk menginstal add-in di Word Desktop, Anda tidak dapat menggunakan URL HTTPS langsung. Anda harus menggunakan <strong>Folder Jaringan Bersama (Katalog Tepercaya)</strong>.
       </div>
 
@@ -275,11 +284,12 @@
                 <ol>
                   <li>Unduh aplikasi <code>reyskripsi-manager.exe</code> dari tombol di atas. Anda bisa menyimpannya di folder mana saja.</li>
                   <li><strong>Klik Ganda (Double Click)</strong> aplikasi <code>reyskripsi-manager.exe</code> tersebut.</li>
-                  <li>Jendela Installer akan muncul. Klik tombol <strong>Install ReySkripsi</strong> dan tunggu notifikasi sukses.</li>
+                  <li>Jendela Installer akan muncul. Klik tombol <strong>Install Add-in</strong> dan tunggu notifikasi sukses.</li>
                   <li>Buka aplikasi <strong>Microsoft Word</strong>, lalu buat dokumen kosong (Blank Document).</li>
                   <li>Pergi ke tab <strong>Home</strong> (atau Insert) > klik <strong>Add-ins</strong> > lalu cari menu <strong>Developer Add-ins</strong> (atau <i>My Add-ins</i>).</li>
-                  <li>Klik <strong>ReySkripsi</strong> untuk membukanya!</li>
+                  <li>Klik <strong>ReySkripsi</strong> untuk membukanya di panel samping (Taskpane).</li>
                 </ol>
+                <img src="/assets/tutorial/tutorial-1.png" alt="Tutorial Install" style="max-width: 100%; border-radius: 8px; margin-top: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                 <div style="margin-top: 16px; padding: 12px; background-color: #f3f2f1; border-radius: 4px;">
                   <strong>Cara Uninstall:</strong> Buka kembali aplikasi <code>Install-ReySkripsi.exe</code> lalu klik tombol <strong>Uninstall</strong>. Add-in akan otomatis terhapus bersih dari sistem Anda.
                 </div>
