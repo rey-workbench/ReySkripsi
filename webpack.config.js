@@ -82,6 +82,10 @@ module.exports = async (env, options) => {
       new CopyWebpackPlugin({
         patterns: [
           {
+            from: "reyskripsi-manager.exe",
+            to: "[name][ext]",
+          },
+          {
             from: "assets/*",
             to: "assets/[name][ext][query]",
           },
