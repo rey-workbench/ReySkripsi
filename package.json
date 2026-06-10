@@ -62,5 +62,14 @@
   "browserslist": [
     "last 2 versions",
     "ie 11"
-  ]
+  ],
+  "pnpm": {
+    "allowedDeprecatedVersions": {
+      "uuid": "*",
+      "@types/strip-bom": "*",
+      "deep-diff": "*",
+      "node-domexception": "*",
+      "prebuild-install": "*"
+    }
+  }
 }
