@@ -1,8 +1,11 @@
 
 .card {
     display: flex;
+    -ms-flex-direction: column;
     flex-direction: column;
+    -ms-flex-align: center;
     align-items: center;
+    -ms-flex-pack: start;
     justify-content: flex-start;
     cursor: pointer;
     text-align: center;
@@ -21,7 +24,9 @@
     height: 64px;
     border-radius: 16px;
     display: flex;
+    -ms-flex-align: center;
     align-items: center;
+    -ms-flex-pack: center;
     justify-content: center;
     margin-bottom: 12px;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);

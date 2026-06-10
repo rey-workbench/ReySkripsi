@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dokumentasi ReySkripsi Add-in</title>
+  <style>
+    /* Microsoft Learn Typography and Layout */
+    :root {
+      --ms-blue: #0067b8;
+      --ms-blue-hover: #005da6;
+      --ms-text: #242424;
+      --ms-text-muted: #5e5e5e;
+      --ms-bg: #ffffff;
+      --ms-border: #e1dfdd;
+      --ms-tag-bg: #f3f2f1;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--ms-bg);
+      color: var(--ms-text);
+      line-height: 1.6;
+    }
+    
+    /* Top Header */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      height: 54px;
+      border-bottom: 1px solid var(--ms-border);
+      font-size: 14px;
+      justify-content: space-between;
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      color: var(--ms-text);
+      align-items: center;
+    }
+    .nav-links a { text-decoration: none; color: inherit; display: flex; align-items: center; gap: 4px; }
+    
+    /* Secondary Header */
+    .header-secondary {
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      height: 48px;
+      border-bottom: 1px solid var(--ms-border);
+      font-size: 14px;
+    }
+    .header-secondary strong { font-size: 16px; margin-right: 24px; }
+    .sec-nav-links { display: flex; gap: 20px; height: 100%; align-items: center; }
+    .sec-nav-links a { text-decoration: none; color: var(--ms-text); font-weight: 600; height: 100%; display: flex; align-items: center; padding: 0 4px;}
+    .sec-nav-links a.active { border-bottom: 3px solid var(--ms-text); margin-bottom: -3px; }
+
+    /* Main Container */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    /* Article Header */
+    .article-header {
+      margin-bottom: 32px;
+    }
+    .article-header h1 {
+      font-size: 32px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+      color: var(--ms-text);
+      line-height: 1.2;
+    }
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 14px;
+      color: var(--ms-text-muted);
+    }
+    .article-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .article-content {
+      font-size: 16px;
+      color: var(--ms-text);
+      line-height: 1.6;
+    }
+    .article-content h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 16px;
+    }
+    .article-content p {
+      margin-bottom: 16px;
+    }
+    
+    .ms-note {
+      background-color: #f3f2f1;
+      border-left: 4px solid var(--ms-blue);
+      padding: 16px;
+      margin: 24px 0;
+    }
+    .ms-note-title {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    /* The old tutorial styles adapted */
+    .tutorial-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .tutorial-step {
+      background: #faf9f8;
+      border: 1px solid var(--ms-border);
+      padding: 24px;
+      border-left: 4px solid var(--ms-blue);
+    }
+    .tutorial-step h4 {
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      color: var(--ms-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tutorial-step-num {
+      background-color: var(--ms-blue);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+    .tutorial-image {
+      max-width: 100%;
+      border: 1px solid var(--ms-border);
+      margin-top: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .btn-download {
+      display: inline-block;
+      background-color: var(--ms-blue);
+      color: white;
+      text-decoration: none;
+      padding: 8px 20px;
+      font-weight: 600;
+      font-size: 14px;
+      margin: 16px 0 24px 0;
+      border-radius: 2px;
+    }
+    .btn-download:hover { background-color: var(--ms-blue-hover); color: white;}
+    
+    code {
+      background-color: var(--ms-tag-bg);
+      padding: 2px 6px;
+      font-family: Consolas, monospace;
+    }
+    
+    .tabs { margin-top: 24px; }
+    .tab-list {
+      display: flex;
+      border-bottom: 1px solid var(--ms-border);
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ms-text-muted);
+      cursor: pointer;
+      position: relative;
+    }
+    .tab-btn.active { color: var(--ms-text); }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: var(--ms-blue);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
+    
+    ol { padding-left: 20px; }
+    li { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- Header/Navbar -->
+  <div class="header">
+    <div class="nav-links">
+      <a href="#" style="font-weight: 600; display:flex; align-items:center; gap:8px;">
+        <!-- Simple logo placeholder -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--ms-blue)"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ReySkripsi
+      </a>
+      <span style="color:#d1d5db;">|</span>
+      <a href="#" style="font-weight: 600;">Dokumentasi</a>
+    </div>
+  </div>
+
+  <div class="header-secondary">
+    <strong>Panduan Pengguna</strong>
+    <div class="sec-nav-links">
+      <a href="#" class="active">Instalasi</a>
+      <a href="#">Penggunaan</a>
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <!-- Documentation Article -->
+    <div class="article-header">
+      <h1>Cara menginstal ReySkripsi Add-in di Word Desktop dan Web</h1>
+      <div class="article-meta">
+        <span>Artikel</span>
+        <span>•</span>
+        <span>10/06/2026</span>
+        <span>•</span>
+        <span>1 kontributor</span>
+      </div>
+    </div>
+
+    <div class="article-content">
+      <p><strong>ReySkripsi</strong> adalah Microsoft Word Add-in khusus yang dirancang untuk mempermudah dan mempercepat proses penulisan skripsi, tesis, maupun karya ilmiah lainnya. Dengan fitur pemformatan otomatis dan pengelolaan dokumen yang terintegrasi, ReySkripsi membantu mahasiswa fokus pada isi tulisan tanpa harus pusing memikirkan format margin, tata letak, atau standar penulisan kampus.</p>
+      
+      <h2>Langkah Instalasi (Sideload)</h2>
+      <p>Artikel ini menjelaskan cara memuat (sideload) add-in ReySkripsi menggunakan file <code>manifest.xml</code> ke dalam Microsoft Word Anda. Metode ini berguna karena saat ini ReySkripsi dibagikan secara langsung tanpa melalui Windows AppSource.</p>
+      
+      <div class="ms-note">
+        <div class="ms-note-title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--ms-blue)"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-3.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm.5 3v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 1 0z"/></svg>
+          Catatan
+        </div>
+        Untuk menginstal add-in di Word Desktop, Anda tidak dapat menggunakan URL HTTPS langsung. Anda harus menggunakan <strong>Folder Jaringan Bersama (Katalog Tepercaya)</strong>.
+      </div>
+
+      <p>Sebelum melanjutkan, cukup unduh <strong>satu file installer</strong> di bawah ini. File ini sudah termasuk manifest Add-in di dalamnya sehingga Anda tidak perlu mengunduh file apa pun lagi secara terpisah.</p>
+      
+      <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+        <a href="/Install-ReySkripsi.exe" class="btn-download" download>Unduh Install-ReySkripsi.exe</a>
+      </div>
+
+      <div class="tabs">
+        <div class="tab-list">
+          <button class="tab-btn active" onclick="openTab(event, 'tab-desktop')">Word Desktop (Lokal)</button>
+          <button class="tab-btn" onclick="openTab(event, 'tab-web')">Word di Web</button>
+        </div>
+
+            <!-- Tab Desktop -->
+            <div id="tab-desktop" class="tab-content active">
+              <p>Ikuti langkah-langkah berikut untuk menginstal Add-in ReySkripsi di Word Desktop (Windows) dengan cepat tanpa perlu melakukan konfigurasi <i>Trust Center</i> secara manual:</p>
+              <div class="tutorial-step" style="border-left-color: #107c41;">
+                <ol>
+                  <li>Unduh aplikasi <code>Install-ReySkripsi.exe</code> dari tombol di atas. Anda bisa menyimpannya di folder mana saja.</li>
+                  <li><strong>Klik Ganda (Double Click)</strong> aplikasi <code>Install-ReySkripsi.exe</code> tersebut.</li>
+                  <li>Jendela Installer akan muncul. Klik tombol <strong>Install ReySkripsi</strong> dan tunggu notifikasi sukses.</li>
+                  <li>Buka aplikasi <strong>Microsoft Word</strong>, lalu buat dokumen kosong (Blank Document).</li>
+                  <li>Pergi ke tab <strong>Home</strong> (atau Insert) > klik <strong>Add-ins</strong> > lalu cari menu <strong>Developer Add-ins</strong> (atau <i>My Add-ins</i>).</li>
+                  <li>Klik <strong>ReySkripsi</strong> untuk membukanya!</li>
+                </ol>
+                <div style="margin-top: 16px; padding: 12px; background-color: #f3f2f1; border-radius: 4px;">
+                  <strong>Cara Uninstall:</strong> Buka kembali aplikasi <code>Install-ReySkripsi.exe</code> lalu klik tombol <strong>Uninstall</strong>. Add-in akan otomatis terhapus bersih dari sistem Anda.
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Web -->
+            <div id="tab-web" class="tab-content">
+              <p>Jika Anda lebih suka menggunakan versi browser web, prosesnya jauh lebih sederhana:</p>
+              <div class="tutorial-step" style="border-left-color: #107c41;">
+                <ol>
+                  <li>Buka <a href="https://word.office.com" target="_blank" rel="noopener noreferrer" style="color:var(--ms-blue)">Word di Web</a> dan buat dokumen kosong baru.</li>
+                  <li>Pergi ke tab <strong>Home</strong> atau <strong>Insert</strong> pada pita menu.</li>
+                  <li>Klik tombol <strong>Add-ins</strong>.</li>
+                  <li>Pada dialog Office Add-ins, pilih <strong>Upload My Add-in</strong> (Unggah Add-in Saya).</li>
+                  <li>Pilih file <code>manifest.xml</code> yang baru saja Anda unduh dan klik <strong>Upload</strong>.</li>
+                  <li>Add-in akan muncul di tab Home atau sebagai panel tugas di sebelah kanan.</li>
+                </ol>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openTab(event, tabName) {
+      const tabContents = document.getElementsByClassName("tab-content");
+      for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove("active");
+      }
+      const tabBtns = document.getElementsByClassName("tab-btn");
+      for (let i = 0; i < tabBtns.length; i++) {
+        tabBtns[i].classList.remove("active");
+      }
+      document.getElementById(tabName).classList.add("active");
+      event.currentTarget.classList.add("active");
+    }
+  </script>
+</body>
+</html>

@@ -2,13 +2,13 @@
 <!-- This file shows how to design a first-run page that provides a welcome screen to the user about the features of the add-in. -->
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Contoso Task Pane Add-in</title>
+    <title>Rey Skripsi</title>
 
     <!-- Office JavaScript API -->
     <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
@@ -21,13 +21,13 @@
 </head>
 
 <body class="ms-font-m ms-welcome ms-Fabric">
-    <main id="app-body" style="height: 100vh; overflow: hidden; position: relative; background-color: #f9fafb;">
+    <main id="app-body">
         
         <!-- HOME SCREEN DASHBOARD -->
         <div id="home-screen" class="screen active">
             <div class="dashboard-header">
-                <h2 class="ms-font-xl" style="font-weight: 600; color: #1f2937; margin: 0;">ReySkripsi</h2>
-                <p class="ms-font-s" style="color: #4b5563; margin-top: 4px;">Pilih alat untuk merapikan dokumen</p>
+                <h2 class="ms-font-xl dashboard-title">ReySkripsi</h2>
+                <p class="ms-font-s dashboard-subtitle">Pilih alat untuk merapikan dokumen</p>
             </div>
             
             <div class="app-grid" id="app-grid">
@@ -36,7 +36,7 @@
         </div>
 
         <!-- CONTAINER FOR DYNAMIC MODULES -->
-        <div id="module-container" style="height: 100%; width: 100%;">
+        <div id="module-container">
             <!-- Modules will be loaded here via JS -->
         </div>
 

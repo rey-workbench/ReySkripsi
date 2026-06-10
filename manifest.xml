@@ -8,9 +8,9 @@
   <Description DefaultValue="Alat bantu skripsi otomatis by Rey."/>
   <IconUrl DefaultValue="https://rey-skripsi.vercel.app/assets/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://rey-skripsi.vercel.app/assets/icon-64.png"/>
-  <SupportUrl DefaultValue="https://www.contoso.com/help"/>
+  <SupportUrl DefaultValue="https://rey-skripsi.vercel.app"/>
   <AppDomains>
-    <AppDomain>https://www.contoso.com</AppDomain>
+    <AppDomain>https://rey-skripsi.vercel.app</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Document"/>

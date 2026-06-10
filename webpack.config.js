@@ -111,6 +111,16 @@ module.exports = async (env, options) => {
           minifyJS: true
         } : false
       }),
+      new HtmlWebpackPlugin({
+        filename: "index.html",
+        template: "./src/index.html",
+        chunks: [],
+        minify: !dev ? {
+          collapseWhitespace: true,
+          removeComments: true,
+          minifyCSS: true
+        } : false
+      }),
     ],
     devServer: {
       headers: {

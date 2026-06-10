@@ -1,0 +1,46 @@
+name: Build Installer
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+    paths:
+      - 'Installer.cs'
+      - 'manifest.xml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Compile Installer (.exe)
+        run: |
+          $cscPath = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          & $cscPath /target:winexe /resource:manifest.xml /out:Install-ReySkripsi.exe Installer.cs
+        shell: powershell
+          
+      - name: Commit and Push Updated Installer
+        if: startsWith(github.ref, 'refs/tags/') == false
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: auto-compile Install-ReySkripsi.exe"
+          file_pattern: 'Install-ReySkripsi.exe'
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: Install-ReySkripsi.exe
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

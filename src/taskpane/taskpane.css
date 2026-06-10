@@ -16,7 +16,9 @@ body {
 }
 
 :global(.app-grid) {
+    display: -ms-grid;
     display: grid;
+    -ms-grid-columns: 1fr 1fr 1fr;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     padding: 24px;
@@ -34,10 +36,35 @@ body {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-sizing: border-box;
     display: flex;
+    -ms-flex-direction: column;
     flex-direction: column;
 }
 
 :global(.screen.active) {
     transform: translateX(0);
+}
+
+/* EXTRACTED INLINE STYLES */
+#app-body {
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    background-color: #f9fafb;
+}
+
+.dashboard-title {
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.dashboard-subtitle {
+    color: #4b5563;
+    margin-top: 4px;
+}
+
+#module-container {
+    height: 100%;
+    width: 100%;
 }
 
