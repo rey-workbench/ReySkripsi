@@ -1,0 +1,43 @@
+/* global Office */
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: #f9fafb; /* gray-50 */
+    color: #1f2937; /* gray-800 */
+}
+
+/* DASHBOARD SPECIFIC */
+:global(.dashboard-header) {
+    padding: 24px 24px 16px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+:global(.app-grid) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 24px;
+}
+
+/* APP SCREENS & NAVIGATION */
+:global(.screen) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f9fafb;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+:global(.screen.active) {
+    transform: translateX(0);
+}
+

@@ -1,0 +1,27 @@
+/* MODAL OVERLAY */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.content {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 24px;
+    width: 85%;
+    max-width: 320px;
+}
+
+.actions button {
+    width: auto;
+    padding: 8px 16px;
+}

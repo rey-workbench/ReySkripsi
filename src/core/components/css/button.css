@@ -1,0 +1,31 @@
+/* BUTTONS */
+.button {
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.primary {
+    background-color: #0078D4; /* Microsoft Blue */
+    color: white;
+}
+
+.primary:hover {
+    background-color: #005a9e;
+}
+
+.secondary {
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.secondary:hover {
+    background-color: #f3f4f6;
+}
