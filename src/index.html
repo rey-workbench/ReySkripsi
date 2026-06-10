@@ -261,29 +261,27 @@
         }
         .carousel-track {
           display: flex;
-          width: calc(100% * 5);
-          animation: slide 15s infinite;
+          width: calc(100% * 4);
+          animation: slide 12s infinite;
         }
         .carousel-track img {
-          width: calc(100% / 5);
+          width: calc(100% / 4);
           height: 450px;
           object-fit: contain;
           padding: 10px;
           box-sizing: border-box;
         }
         @keyframes slide {
-          0%, 15% { transform: translateX(0); }
-          20%, 35% { transform: translateX(-20%); }
-          40%, 55% { transform: translateX(-40%); }
-          60%, 75% { transform: translateX(-60%); }
-          80%, 95% { transform: translateX(-80%); }
+          0%, 20% { transform: translateX(0); }
+          25%, 45% { transform: translateX(-25%); }
+          50%, 70% { transform: translateX(-50%); }
+          75%, 95% { transform: translateX(-75%); }
           100% { transform: translateX(0); }
         }
       </style>
 
       <div class="carousel-container">
         <div class="carousel-track">
-          <img src="/assets/demo/demo-1.png" alt="Demo 1">
           <img src="/assets/demo/demo-2.png" alt="Demo 2">
           <img src="/assets/demo/demo-3.png" alt="Demo 3">
           <img src="/assets/demo/demo-4.png" alt="Demo 4">
