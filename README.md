@@ -41,15 +41,12 @@ Anda tidak perlu lagi melakukan setup Shared Folder atau Trust Center secara man
 1. Unduh aplikasi `reyskripsi-manager.exe` terbaru dari [halaman GitHub Releases](https://github.com/rey-workbench/ReySkripsi/releases/latest).
 2. **Klik Ganda (Double Click)** aplikasi `reyskripsi-manager.exe` tersebut.
 3. Jendela Installer akan muncul. Klik tombol **Install Add-in** dan tunggu notifikasi sukses.
+   <br><img src="assets/demo/demo-1.png" alt="Tutorial Install" width="700">
 4. Buka aplikasi **Microsoft Word**, lalu buat dokumen kosong (Blank Document).
 5. Pergi ke tab **Home** (atau Insert) > klik **Add-ins** > lalu cari menu **Developer Add-ins** (atau _My Add-ins_).
 6. Klik **ReySkripsi** untuk membukanya di panel samping (Taskpane).
 7. *Catatan:* Jika muncul jendela pop-up **"Debug Event-based handler"** (seperti gambar di bawah), klik tombol **Cancel** agar pesan tersebut tidak muncul lagi.
    <br><img src="assets/tutorial/tutorial-1.png" alt="Debug Popup" width="300">
-
-<p align="center">
-  <img src="assets/demo/demo-1.png" alt="Tutorial Install" width="700">
-</p>
 
 ### Cara Uninstall
 Buka kembali aplikasi `reyskripsi-manager.exe` lalu klik tombol **Uninstall**. Add-in akan otomatis terhapus bersih dari sistem Anda.
