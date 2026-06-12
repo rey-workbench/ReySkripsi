@@ -4,6 +4,7 @@
  */
 
 /// <reference types="office-js" />
+import { AutoUpdater } from 'src/core/services/auto-updater';
 import { AppRouter } from '../core/app-router';
 import { AutoLanguageModule } from '../modules/auto-language/auto-language';
 import { BatchManualModule } from '../modules/batch-manual/batch-manual';
@@ -22,5 +23,8 @@ Office.onReady((info) => {
     
     // Boot up the application
     app.start();
+
+    // Start Auto Updater polling
+    new AutoUpdater().start();
   }
 });

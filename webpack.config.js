@@ -108,6 +108,13 @@ module.exports = async (env, options) => {
               }
             },
           },
+          {
+            from: "package.json", // Dummy source just to trigger transform
+            to: "version.json",
+            transform() {
+              return JSON.stringify({ version: Date.now().toString() });
+            }
+          },
         ],
       }),
       new HtmlWebpackPlugin({
