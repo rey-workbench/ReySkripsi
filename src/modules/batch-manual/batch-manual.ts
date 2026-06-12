@@ -65,10 +65,11 @@ export class BatchManualModule implements IModule {
 
   private async extractForeignWords() {
     ToastService.show(`Memindai kata asing di dokumen...`);
+    const matchCase = (document.getElementById("match-case") as HTMLInputElement).checked;
     
     try {
       await Word.run(async (context) => {
-        const foreignWords = await WordService.extractForeignWords(context);
+        const foreignWords = await WordService.extractForeignWords(context, matchCase);
 
         const uniqueWordsArray = Array.from(foreignWords);
         if (uniqueWordsArray.length > 0) {
