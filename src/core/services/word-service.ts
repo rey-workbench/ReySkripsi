@@ -111,11 +111,19 @@ export class WordService {
         }
       } else {
         const range = context.document.getSelection();
+        range.load("text");
+        await context.sync();
+        
+        if (!range.text || range.text.trim() === "") {
+            ToastService.show("Pilih teks di dalam dokumen Word terlebih dahulu!", true);
+            return;
+        }
+        
         totalMatches += await scanner(range, true);
       }
 
       if (totalMatches === 0) {
-        ToastService.show("Tidak ditemukan kata yang cocok.", true);
+        ToastService.show("Tidak ditemukan kata yang cocok. Periksa kembali Match Case atau pilihan teks.", true);
         return;
       }
 

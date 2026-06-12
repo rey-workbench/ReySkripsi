@@ -97,8 +97,12 @@ export class BatchManualModule implements IModule {
   }
 
   private execute(wholeDocument: boolean) {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     const rawInput = (document.getElementById("batch-input") as HTMLTextAreaElement).value;
-    const wordsToMatch = rawInput.split(/[\n,]+/).map(w => w.trim()).filter(w => w.length > 0);
+    const wordsToMatch = rawInput.split(/[\n,;]+/).map(w => w.trim()).filter(w => w.length > 0);
     const matchCase = (document.getElementById("match-case") as HTMLInputElement).checked;
 
     if (wordsToMatch.length === 0) {
