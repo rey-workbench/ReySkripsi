@@ -56,7 +56,7 @@ export class WordService {
   /**
    * Mengekstrak kata-kata asing dari seluruh dokumen.
    */
-  public static async extractForeignWords(context: Word.RequestContext): Promise<Set<string>> {
+  public static async extractForeignWords(context: Word.RequestContext, matchCase: boolean = false): Promise<Set<string>> {
       const foreignWords = new Set<string>();
 
       const body = context.document.body;
@@ -70,7 +70,9 @@ export class WordService {
           await this.initDictionary();
 
           const allWordsInDoc = bodyText.match(/[a-zA-Z]+/g) || [];
-          const uniqueWords = Array.from(new Set(allWordsInDoc.map(w => w.toLowerCase())));
+          const uniqueWords = matchCase 
+              ? Array.from(new Set(allWordsInDoc))
+              : Array.from(new Set(allWordsInDoc.map(w => w.toLowerCase())));
 
           for (const word of uniqueWords) {
               if (this.isForeignWord(word)) {
