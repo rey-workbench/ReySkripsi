@@ -4,7 +4,7 @@
  */
 
 /// <reference types="office-js" />
-import { AutoUpdater } from 'src/core/services/auto-updater';
+import { AutoUpdater } from '../core/services/auto-updater';
 import { AppRouter } from '../core/app-router';
 import { AutoLanguageModule } from '../modules/auto-language/auto-language';
 import { BatchManualModule } from '../modules/batch-manual/batch-manual';
