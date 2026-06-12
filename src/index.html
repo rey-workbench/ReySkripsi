@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dokumentasi ReySkripsi Add-in</title>
   <style>
+    /* stylelint-disable */
+    /* noinspection CssBrowserCompatibilityForProperties, CssInvalidPropertyValue, HtmlUnknownAttribute */
     /* Microsoft Learn Typography and Layout */
     :root {
       --ms-blue: #0067b8;
@@ -17,7 +19,7 @@
     }
     body {
       margin: 0;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
       background-color: var(--ms-bg);
       color: var(--ms-text);
       line-height: 1.6;
@@ -25,25 +27,40 @@
     
     /* Top Header */
     .header {
+      display: -ms-flexbox;
       display: flex;
+      -ms-flex-align: center;
       align-items: center;
+      -ms-flex-pack: justify;
+      justify-content: space-between;
       padding: 0 24px;
       height: 54px;
       border-bottom: 1px solid var(--ms-border);
       font-size: 14px;
-      justify-content: space-between;
     }
     .nav-links {
+      display: -ms-flexbox;
       display: flex;
+      -ms-flex-align: center;
+      align-items: center;
       gap: 20px;
       color: var(--ms-text);
-      align-items: center;
     }
-    .nav-links a { text-decoration: none; color: inherit; display: flex; align-items: center; gap: 4px; }
+    .nav-links a {
+      text-decoration: none;
+      color: inherit;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-align: center;
+      align-items: center;
+      gap: 4px;
+    }
     
     /* Secondary Header */
     .header-secondary {
+      display: -ms-flexbox;
       display: flex;
+      -ms-flex-align: center;
       align-items: center;
       padding: 0 24px;
       height: 48px;
@@ -51,8 +68,25 @@
       font-size: 14px;
     }
     .header-secondary strong { font-size: 16px; margin-right: 24px; }
-    .sec-nav-links { display: flex; gap: 20px; height: 100%; align-items: center; }
-    .sec-nav-links a { text-decoration: none; color: var(--ms-text); font-weight: 600; height: 100%; display: flex; align-items: center; padding: 0 4px;}
+    .sec-nav-links {
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-align: center;
+      align-items: center;
+      gap: 20px;
+      height: 100%;
+    }
+    .sec-nav-links a {
+      text-decoration: none;
+      color: var(--ms-text);
+      font-weight: 600;
+      height: 100%;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-align: center;
+      align-items: center;
+      padding: 0 4px;
+    }
     .sec-nav-links a.active { border-bottom: 3px solid var(--ms-text); margin-bottom: -3px; }
 
     /* Main Container */
@@ -74,14 +108,18 @@
       line-height: 1.2;
     }
     .article-meta {
+      display: -ms-flexbox;
       display: flex;
+      -ms-flex-align: center;
       align-items: center;
       gap: 16px;
       font-size: 14px;
       color: var(--ms-text-muted);
     }
     .article-meta span {
+      display: -ms-flexbox;
       display: flex;
+      -ms-flex-align: center;
       align-items: center;
       gap: 4px;
     }
@@ -108,7 +146,9 @@
     }
     .ms-note-title {
       font-weight: 600;
+      display: -ms-flexbox;
       display: flex;
+      -ms-flex-align: center;
       align-items: center;
       gap: 8px;
       margin-bottom: 8px;
@@ -116,7 +156,9 @@
 
     /* The old tutorial styles adapted */
     .tutorial-grid {
+      display: -ms-flexbox;
       display: flex;
+      -ms-flex-direction: column;
       flex-direction: column;
       gap: 24px;
       margin-top: 20px;
@@ -131,7 +173,9 @@
       margin: 0 0 12px 0;
       font-size: 16px;
       color: var(--ms-blue);
+      display: -ms-flexbox;
       display: flex;
+      -ms-flex-align: center;
       align-items: center;
       gap: 8px;
     }
@@ -141,8 +185,11 @@
       width: 24px;
       height: 24px;
       border-radius: 50%;
+      display: -ms-flexbox;
       display: flex;
+      -ms-flex-align: center;
       align-items: center;
+      -ms-flex-pack: center;
       justify-content: center;
       font-size: 13px;
     }
@@ -173,7 +220,7 @@
     
     .tabs { margin-top: 24px; }
     .tab-list {
-      display: flex;
+      display: -ms-flexbox; display: flex;
       border-bottom: 1px solid var(--ms-border);
       margin-bottom: 24px;
     }
@@ -203,6 +250,32 @@
     
     ol { padding-left: 20px; }
     li { margin-bottom: 8px; }
+    
+    /* Extracted Inline Styles */
+    .nav-logo-link {
+      font-weight: 600;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-align: center;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-divider { color:#d1d5db; }
+    .nav-text-link { font-weight: 600; }
+    .mt-40 { margin-top: 40px; }
+    .download-group {
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .tutorial-step-green { border-left-color: #107c41; }
+    .tutorial-step-red { border-left-color: #d13438; }
+    .tutorial-img-large { max-width: 450px; border-radius: 8px; margin-top: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .tutorial-img-small { max-width: 300px; border-radius: 8px; margin-top: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .link-blue { color:var(--ms-blue); }
   </style>
 </head>
 <body>
@@ -210,13 +283,13 @@
   <!-- Header/Navbar -->
   <div class="header">
     <div class="nav-links">
-      <a href="#" style="font-weight: 600; display:flex; align-items:center; gap:8px;">
+      <a href="#" class="nav-logo-link">
         <!-- Simple logo placeholder -->
         <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--ms-blue)"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         ReySkripsi
       </a>
-      <span style="color:#d1d5db;">|</span>
-      <a href="#" style="font-weight: 600;">Dokumentasi</a>
+      <span class="nav-divider">|</span>
+      <a href="#" class="nav-text-link">Dokumentasi</a>
     </div>
   </div>
 
@@ -246,7 +319,7 @@
     <div class="article-content">
       <p><strong>ReySkripsi</strong> adalah Microsoft Word Add-in yang dirancang untuk mempermudah penulisan skripsi, tesis, maupun karya ilmiah. Fitur utama alat ini adalah kemampuannya untuk <strong>mendeteksi dan memiringkan (italicize) kata-kata asing</strong> secara otomatis berdasarkan Kamus Besar Bahasa Indonesia (KBBI). Dengan ReySkripsi, Anda tidak perlu lagi menghabiskan waktu mencari dan memiringkan kata bahasa asing satu per satu secara manual.</p>
       
-      <h2 style="margin-top: 40px;">Fitur & Tampilan Aplikasi</h2>
+      <h2 class="mt-40">Fitur & Tampilan Aplikasi</h2>
       <p>Berikut adalah tampilan antarmuka ReySkripsi saat digunakan langsung di dalam Microsoft Word Anda:</p>
       
       <style>
@@ -260,7 +333,7 @@
           background: #f3f2f1;
         }
         .carousel-track {
-          display: flex;
+          display: -ms-flexbox; display: flex;
           width: calc(100% * 4);
           animation: slide 12s infinite;
         }
@@ -292,7 +365,7 @@
       <h2>Unduh & Instal Aplikasi</h2>
       <p>Untuk mulai menggunakan ReySkripsi di komputer Anda, silakan unduh aplikasi <strong>ReySkripsi Manager</strong> melalui tombol di bawah ini. Aplikasi ini dirancang agar proses pemasangan menjadi sangat mudah cukup dengan beberapa klik.</p>
       
-      <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+      <div class="download-group">
         <a href="/reyskripsi-manager.exe" class="btn-download" download>Unduh reyskripsi-manager.exe</a>
       </div>
 
@@ -306,18 +379,18 @@
             <!-- Tab Desktop -->
             <div id="tab-desktop" class="tab-content active">
               <p>Ikuti langkah-langkah berikut untuk memasang ReySkripsi di Microsoft Word Desktop (Windows) Anda:</p>
-              <div class="tutorial-step" style="border-left-color: #107c41;">
+              <div class="tutorial-step tutorial-step-green">
                 <ol>
                   <li>Unduh aplikasi <code>reyskripsi-manager.exe</code> dari tombol di atas. Anda bisa menyimpannya di folder mana saja.</li>
                   <li><strong>Klik Ganda (Double Click)</strong> aplikasi <code>reyskripsi-manager.exe</code> tersebut.</li>
                   <li>Jendela Installer akan muncul. Klik tombol <strong>Install Add-in</strong> dan tunggu notifikasi sukses.
-                    <br><img src="/assets/demo/demo-1.png" alt="Tutorial Install" style="max-width: 450px; border-radius: 8px; margin-top: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <br><img src="/assets/demo/demo-1.png" alt="Tutorial Install" class="tutorial-img-large">
                   </li>
                   <li>Buka aplikasi <strong>Microsoft Word</strong>, lalu buat dokumen kosong baru.</li>
                   <li>Pergi ke tab <strong>Home</strong> (Beranda) > klik menu <strong>Add-ins</strong> > lalu pilih <strong>My Add-ins</strong> (Add-in Saya).</li>
                   <li>Klik ikon <strong>ReySkripsi</strong> untuk membuka panel di sebelah kanan.</li>
                   <li><em>Catatan:</em> Jika sewaktu-waktu muncul pesan notifikasi <strong>"Debug Event-based handler"</strong> (seperti gambar di bawah), abaikan saja dengan mengklik tombol <strong>Cancel</strong>.
-                    <br><img src="/assets/tutorial/tutorial-1.png" alt="Debug Popup" style="max-width: 300px; border-radius: 8px; margin-top: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <br><img src="/assets/tutorial/tutorial-1.png" alt="Debug Popup" class="tutorial-img-small">
                   </li>
                 </ol>
               </div>
@@ -326,9 +399,9 @@
             <!-- Tab Web -->
             <div id="tab-web" class="tab-content">
               <p>Jika Anda menggunakan Microsoft Word versi Web (melalui browser), proses pemasangannya sedikit berbeda:</p>
-              <div class="tutorial-step" style="border-left-color: #107c41;">
+              <div class="tutorial-step tutorial-step-green">
                 <ol>
-                  <li>Buka situs <a href="https://word.office.com" target="_blank" rel="noopener noreferrer" style="color:var(--ms-blue)">Word di Web</a> dan buat dokumen baru.</li>
+                  <li>Buka situs <a href="https://word.office.com" target="_blank" rel="noopener noreferrer" class="link-blue">Word di Web</a> dan buat dokumen baru.</li>
                   <li>Pilih tab <strong>Home</strong> (Beranda) atau <strong>Insert</strong> (Sisipkan) di bagian atas.</li>
                   <li>Klik menu <strong>Add-ins</strong>.</li>
                   <li>Pada jendela yang muncul, pilih <strong>Upload My Add-in</strong> (Unggah Add-in Saya).</li>
@@ -341,11 +414,11 @@
             <!-- Tab Uninstall -->
             <div id="tab-uninstall" class="tab-content">
               <p>Jika Anda ingin menghapus add-in ReySkripsi dari komputer Anda, ikuti langkah berikut:</p>
-              <div class="tutorial-step" style="border-left-color: #d13438;">
+              <div class="tutorial-step tutorial-step-red">
                 <ol>
                   <li>Buka kembali aplikasi <code>reyskripsi-manager.exe</code> yang sudah Anda unduh.</li>
                   <li>Klik tombol <strong>Uninstall</strong>.
-                    <br><img src="/assets/demo/demo-1.png" alt="Tutorial Uninstall" style="max-width: 450px; border-radius: 8px; margin-top: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <br><img src="/assets/demo/demo-1.png" alt="Tutorial Uninstall" class="tutorial-img-large">
                   </li>
                   <li>Tunggu notifikasi sukses, maka Add-in akan otomatis terhapus bersih dari sistem Anda.</li>
                   <li>Muat ulang (Restart) Microsoft Word jika sedang terbuka.</li>
