@@ -29,7 +29,7 @@ export class WordScannerService {
                 matchWholeWord: true, 
                 matchCase: matchCase 
             });
-            searchResults.load("items/font, items/style, items/parentContentControlOrNullObject");
+            searchResults.load("items/font, items/style, items/parentContentControlOrNullObject, items/parentBody/type");
             allSearchResults.push(searchResults);
             
             batchCount++;
@@ -62,6 +62,11 @@ export class WordScannerService {
                 if (styleName.includes("footnote") || styleName.includes("endnote") || styleName.includes("bibliography")) {
                     continue;
                 }
+
+                // Skip if it is physically inside a footnote/endnote
+                if (item.parentBody && (item.parentBody.type === "Footnote" || item.parentBody.type === "Endnote")) {
+                    continue;
+                }
                 
                 if (!item.parentContentControlOrNullObject.isNullObject) {
                     continue;
@@ -85,6 +90,30 @@ export class WordScannerService {
 
         if (hasChanges && !isDryRun) {
             await range.context.sync();
+
+            // Tahap post-processing: Hilangkan italic pada field sitasi (Zotero, Mendeley, Word Citation)
+            if (Office.context.requirements.isSetSupported('WordApi', '1.4') && range.fields) {
+                try {
+                    const fields = range.fields;
+                    fields.load("items/code, items/result/font");
+                    await range.context.sync();
+                    
+                    let fieldChanges = false;
+                    for (const field of fields.items) {
+                        if (cancellationToken?.isCancelled) break;
+                        const code = (field.code || "").toUpperCase();
+                        if (code.includes("ADDIN ZOTERO_ITEM") || code.includes("ADDIN MENDELEY") || code.includes("CITATION")) {
+                            field.result.font.italic = false;
+                            fieldChanges = true;
+                        }
+                    }
+                    if (fieldChanges && !cancellationToken?.isCancelled) {
+                        await range.context.sync();
+                    }
+                } catch (e) {
+                    console.warn("Gagal memproses field sitasi", e);
+                }
+            }
         }
         
         return count;

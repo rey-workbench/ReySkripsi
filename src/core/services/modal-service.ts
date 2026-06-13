@@ -111,7 +111,7 @@ export class ModalService {
     if (actionsEl) {
        if (onCancel) {
            if (!document.getElementById("modal-btn-cancel-progress")) {
-               actionsEl.innerHTML = `<button id="modal-btn-cancel-progress" class="${btnStyles.button} ${btnStyles.secondary}">Batal</button>`;
+               actionsEl.innerHTML = `<button id="modal-btn-cancel-progress" class="${btnStyles.button} ${btnStyles.cancel}">Batal</button>`;
            }
            const btnCancel = document.getElementById("modal-btn-cancel-progress");
            if (btnCancel) {
