@@ -47,29 +47,38 @@ export class AutoLanguageModule implements IModule {
         await WordService.initDictionary();
 
         WordService.processWithConfirmation(wholeDocument, async (range: any, isDryRun: boolean) => {
-          const words = range.search("<[A-Za-z]@>", { matchWildcards: true });
-          words.load("items/text");
-          await range.context.sync();
-
           let count = 0;
           let hasChanges = false;
           
-          for (let i = 0; i < words.items.length; i++) {
-            const wordText = words.items[i].text;
-            
-            if (WordService.isForeignWord(wordText)) {
-              count++;
-              if (!isDryRun) {
-                  if (ENV.FORMAT_STYLE.ITALIC) {
-                      words.items[i].font.italic = true;
+          // Use the Word API context to get the document text and find foreign words
+          const foreignWords = await WordService.extractForeignWords(range.context, false);
+          const wordsToMatch = Array.from(foreignWords);
+
+          if (wordsToMatch.length === 0) {
+              return 0; // No foreign words found
+          }
+
+          for (const targetWord of wordsToMatch) {
+              const searchResults = range.search(targetWord, { 
+                  matchWholeWord: true, 
+                  matchCase: false 
+              });
+              searchResults.load("items");
+              await range.context.sync();
+              
+              for (let i = 0; i < searchResults.items.length; i++) {
+                  count++;
+                  if (!isDryRun) {
+                      if (ENV.FORMAT_STYLE.ITALIC) {
+                          searchResults.items[i].font.italic = true;
+                      }
+                      hasChanges = true;
                   }
-                  hasChanges = true;
               }
-            }
           }
 
           if (hasChanges && !isDryRun) {
-            await range.context.sync();
+              await range.context.sync();
           }
           
           return count;

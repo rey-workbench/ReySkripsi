@@ -94,7 +94,7 @@ export class WordService {
    */
   public static async processWithConfirmation(
     wholeDocument: boolean,
-    scanner: (range: Word.Range | Word.Paragraph, isDryRun: boolean) => Promise<number>
+    scanner: (range: Word.Range | Word.Body | Word.Paragraph, isDryRun: boolean) => Promise<number>
   ): Promise<void> {
     return Word.run(async (context) => {
       ToastService.show("Scanning document...");
@@ -102,15 +102,7 @@ export class WordService {
       // Phase 1: Dry Run (Count only)
       let totalMatches = 0;
       if (wholeDocument) {
-        const paragraphs = context.document.body.paragraphs;
-        paragraphs.load("items");
-        await context.sync();
-
-        for (let p = 0; p < paragraphs.items.length; p++) {
-          ToastService.show(`Scanning paragraph ${p + 1} of ${paragraphs.items.length}...`);
-          totalMatches += await scanner(paragraphs.items[p], true);
-          await new Promise(resolve => setTimeout(resolve, 5)); // Yield
-        }
+        totalMatches += await scanner(context.document.body, true);
       } else {
         const range = context.document.getSelection();
         range.load("text");
@@ -143,15 +135,7 @@ export class WordService {
       let appliedCount = 0;
       
       if (wholeDocument) {
-        const paragraphs = context.document.body.paragraphs;
-        paragraphs.load("items");
-        await context.sync();
-
-        for (let p = 0; p < paragraphs.items.length; p++) {
-          ToastService.show(`Applying to paragraph ${p + 1} of ${paragraphs.items.length}...`);
-          appliedCount += await scanner(paragraphs.items[p], false);
-          await new Promise(resolve => setTimeout(resolve, 10)); // Yield
-        }
+        appliedCount += await scanner(context.document.body, false);
       } else {
         const range = context.document.getSelection();
         appliedCount += await scanner(range, false);
