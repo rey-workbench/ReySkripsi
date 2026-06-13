@@ -2,7 +2,7 @@ import styles from '../components/css/toast.css';
 import { DOMService } from './dom-service';
 
 export class ToastService {
-  public static show(message: string, isError: boolean = false) {
+  public static show(message: string, isError: boolean = false, keepOpen: boolean = false) {
     const toast = DOMService.getOrCreateElement('toast-container', styles.toast);
     
     // Reset classes
@@ -11,14 +11,27 @@ export class ToastService {
         toast.classList.add(styles.error);
     }
     
-    toast.textContent = message;
-    toast.classList.add(styles.show);
-
-    if (!isError) {
-        setTimeout(() => {
-            this.hide();
-        }, 5000);
+    if (keepOpen) {
+       toast.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; text-align: left; gap: 12px;">
+            <span>${message}</span>
+            <button id="toast-close-btn" class="${styles['toast-cancel-btn']}">OK</button>
+          </div>
+       `;
+       setTimeout(() => {
+          const btn = document.getElementById('toast-close-btn');
+          if (btn) btn.onclick = () => this.hide();
+       }, 0);
+    } else {
+       toast.textContent = message;
+       if (!isError) {
+           setTimeout(() => {
+               this.hide();
+           }, 5000);
+       }
     }
+
+    toast.classList.add(styles.show);
   }
 
   public static showProgress(message: string, percent: number, onCancel?: () => void) {

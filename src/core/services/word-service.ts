@@ -78,9 +78,9 @@ export class WordService {
         ToastService.hide();
         
         if (cancellationToken.isCancelled) {
-           ToastService.show(`Proses dibatalkan di tengah jalan. Telah memiringkan ${appliedCount} kata sejauh ini.`);
+           ToastService.show(`Proses dibatalkan di tengah jalan. Telah memiringkan ${appliedCount} kata sejauh ini.`, false, true);
         } else {
-           ToastService.show(`Selesai! Berhasil memiringkan ${appliedCount} kata.`);
+           ToastService.show(`Selesai! Berhasil memiringkan ${appliedCount} kata.`, false, true);
         }
       });
     } catch (error: any) {

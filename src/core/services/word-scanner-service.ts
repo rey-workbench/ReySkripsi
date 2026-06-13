@@ -29,9 +29,7 @@ export class WordScannerService {
                 matchWholeWord: true, 
                 matchCase: matchCase 
             });
-            searchResults.load("items/font");
-            searchResults.load("items/style");
-            searchResults.load("items/parentContentControlOrNullObject");
+            searchResults.load("items/font, items/style, items/parentContentControlOrNullObject");
             allSearchResults.push(searchResults);
             
             batchCount++;

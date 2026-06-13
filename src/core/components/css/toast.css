@@ -54,14 +54,23 @@
 }
 
 .toast-cancel-btn {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     color: white;
     cursor: pointer;
-    font-size: 12px;
-    text-decoration: underline;
-    padding: 0;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 .toast-cancel-btn:hover {
-    color: #f3f2f1;
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.05);
+}
+.toast-cancel-btn:active {
+    transform: scale(0.95);
 }
