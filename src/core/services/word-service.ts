@@ -11,7 +11,7 @@ export class WordService {
     scanner: (range: Word.Range | Word.Body | Word.Paragraph, isDryRun: boolean, token: ICancellationToken, onProgress: TProgressCallback) => Promise<number>
   ): Promise<void> {
     if (this.isProcessing) {
-      ToastService.show("Ada proses yang sedang berjalan. Harap tunggu...", true);
+      ModalService.showAlert("Info", "Ada proses yang sedang berjalan. Harap tunggu...");
       return;
     }
     
@@ -21,12 +21,12 @@ export class WordService {
 
     try {
       await Word.run(async (context) => {
-        ToastService.showProgress("Memindai dokumen...", 0, handleCancel);
+        ModalService.showProgress("Memindai dokumen...", 0, handleCancel);
         
         // Phase 1: Dry Run (Count only)
         let totalMatches = 0;
         const progressCallback: TProgressCallback = (percent, msg) => {
-           ToastService.showProgress(msg, percent, handleCancel);
+           ModalService.showProgress(msg, percent, handleCancel);
         };
 
         if (wholeDocument) {
@@ -37,23 +37,23 @@ export class WordService {
           await context.sync();
           
           if (!range.text || range.text.trim() === "") {
-              ToastService.hide();
-              ToastService.show("Pilih teks di dalam dokumen Word terlebih dahulu!", true);
+              ModalService.hideProgress();
+              ModalService.showAlert("Info", "Pilih teks di dalam dokumen Word terlebih dahulu!");
               return;
           }
           
           totalMatches += await scanner(range, true, cancellationToken, progressCallback);
         }
 
-        ToastService.hide();
+        ModalService.hideProgress();
 
         if (cancellationToken.isCancelled) {
-          ToastService.show("Pencarian dibatalkan oleh pengguna.");
+          ModalService.showAlert("Dibatalkan", "Pencarian dibatalkan oleh pengguna.");
           return;
         }
 
         if (totalMatches === 0) {
-          ToastService.show("Tidak ditemukan kata yang cocok. Periksa kembali Match Case atau pilihan teks.", true);
+          ModalService.showAlert("Selesai", "Tidak ditemukan kata yang cocok. Periksa kembali Match Case atau pilihan teks.");
           return;
         }
 
@@ -61,7 +61,7 @@ export class WordService {
         const isConfirmed = await ModalService.showConfirmation(`Ditemukan ${totalMatches} kata/kalimat yang cocok. Lanjutkan memiringkan?`);
         
         if (!isConfirmed) {
-          ToastService.show("Proses dibatalkan oleh pengguna.");
+          ModalService.showAlert("Dibatalkan", "Proses dibatalkan oleh pengguna.");
           return;
         }
 
@@ -75,18 +75,18 @@ export class WordService {
           appliedCount += await scanner(range, false, cancellationToken, progressCallback);
         }
 
-        ToastService.hide();
+        ModalService.hideProgress();
         
         if (cancellationToken.isCancelled) {
-           ToastService.show(`Proses dibatalkan di tengah jalan. Telah memiringkan ${appliedCount} kata sejauh ini.`, false, true);
+           ModalService.showAlert("Selesai", `Proses dibatalkan di tengah jalan. Telah memiringkan ${appliedCount} kata sejauh ini.`);
         } else {
-           ToastService.show(`Selesai! Berhasil memiringkan ${appliedCount} kata.`, false, true);
+           ModalService.showAlert("Selesai", `Selesai! Berhasil memiringkan ${appliedCount} kata.`);
         }
       });
     } catch (error: any) {
       console.error(error);
-      ToastService.hide();
-      ToastService.show("Error: " + error.message, true);
+      ModalService.hideProgress();
+      ModalService.showAlert("Error", error.message);
     } finally {
       this.isProcessing = false;
     }
