@@ -22,3 +22,46 @@
 .toast.error {
     background-color: #A4262C; /* Error Red */
 }
+
+/* PROGRESS TOAST */
+.toast.progress {
+    background-color: #2b88d8; /* Progress Blue */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+.toast-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.toast-progress-bar-container {
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.toast-progress-bar {
+    height: 100%;
+    background-color: white;
+    width: 0%;
+    transition: width 0.2s ease;
+}
+
+.toast-cancel-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: underline;
+    padding: 0;
+}
+.toast-cancel-btn:hover {
+    color: #f3f2f1;
+}

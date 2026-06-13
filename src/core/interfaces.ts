@@ -8,3 +8,9 @@ export interface IModule {
     // Lifecycle hook: called after HTML is injected into DOM
     onInit(): void;
 }
+
+export interface ICancellationToken {
+    isCancelled: boolean;
+}
+
+export type TProgressCallback = (percent: number, message: string) => void;

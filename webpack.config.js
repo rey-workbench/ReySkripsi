@@ -24,6 +24,11 @@ module.exports = async (env, options) => {
     output: {
       clean: true,
     },
+    performance: {
+      hints: false,
+      maxEntrypointSize: 2000000,
+      maxAssetSize: 2000000
+    },
     resolve: {
       extensions: [".ts", ".html", ".js"],
     },

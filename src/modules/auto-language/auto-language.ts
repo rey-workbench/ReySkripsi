@@ -1,11 +1,9 @@
-/// <reference types="office-js" />
 import { WordService } from '../../core/services/word-service';
 import { DictionaryService } from '../../core/services/dictionary-service';
 import { WordScannerService } from '../../core/services/word-scanner-service';
 import { IModule } from '../../core/interfaces';
 import { Button } from '../../core/components/button';
 import { ToastService } from '../../core/services/toast-service';
-import { LoadingService } from '../../core/services/loading-service';
 export class AutoLanguageModule implements IModule {
   public id = "module-lang";
   public name = "Auto Language";
@@ -45,11 +43,11 @@ export class AutoLanguageModule implements IModule {
 
   private async execute(wholeDocument: boolean) {
     try {
-        LoadingService.show("Memuat Kamus KBBI Offline...");
+        ToastService.showProgress("Memuat Kamus KBBI Offline...", 0);
         await DictionaryService.init();
-        LoadingService.hide();
+        ToastService.hide();
 
-        WordService.processWithConfirmation(wholeDocument, async (range, isDryRun) => {
+        WordService.processWithConfirmation(wholeDocument, async (range, isDryRun, token, onProgress) => {
           // Extrak teks dari range
           range.load("text");
           await range.context.sync();
@@ -62,7 +60,7 @@ export class AutoLanguageModule implements IModule {
           }
 
           // Gunakan scanner untuk apply
-          return await WordScannerService.scanAndFormat(range, wordsToMatch, false, isDryRun);
+          return await WordScannerService.scanAndFormat(range, wordsToMatch, false, isDryRun, token, onProgress);
         });
     } catch (e) {
         const error = e as Error;
