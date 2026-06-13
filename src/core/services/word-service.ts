@@ -1,6 +1,7 @@
 /// <reference types="office-js" />
 import { ToastService } from './toast-service';
 import { ModalService } from './modal-service';
+import { LoadingService } from './loading-service';
 import { ENV } from '../../config';
 
 // @ts-ignore
@@ -97,7 +98,7 @@ export class WordService {
     scanner: (range: Word.Range | Word.Body | Word.Paragraph, isDryRun: boolean) => Promise<number>
   ): Promise<void> {
     return Word.run(async (context) => {
-      ToastService.show("Scanning document...");
+      LoadingService.show("Memindai dokumen...");
       
       // Phase 1: Dry Run (Count only)
       let totalMatches = 0;
@@ -109,6 +110,7 @@ export class WordService {
         await context.sync();
         
         if (!range.text || range.text.trim() === "") {
+            LoadingService.hide();
             ToastService.show("Pilih teks di dalam dokumen Word terlebih dahulu!", true);
             return;
         }
@@ -116,13 +118,14 @@ export class WordService {
         totalMatches += await scanner(range, true);
       }
 
+      LoadingService.hide();
+
       if (totalMatches === 0) {
         ToastService.show("Tidak ditemukan kata yang cocok. Periksa kembali Match Case atau pilihan teks.", true);
         return;
       }
 
       // Phase 2: Confirmation
-      ToastService.show(`Found ${totalMatches} matches. Waiting for confirmation...`);
       const isConfirmed = await ModalService.showConfirmation(`Ditemukan ${totalMatches} kata/kalimat yang cocok. Lanjutkan memiringkan?`);
       
       if (!isConfirmed) {
@@ -131,7 +134,7 @@ export class WordService {
       }
 
       // Phase 3: Execution
-      ToastService.show("Menerapkan format...");
+      LoadingService.show("Menerapkan format...");
       let appliedCount = 0;
       
       if (wholeDocument) {
@@ -141,9 +144,11 @@ export class WordService {
         appliedCount += await scanner(range, false);
       }
 
+      LoadingService.hide();
       ToastService.show(`Selesai! Berhasil memiringkan ${appliedCount} kata.`);
     }).catch((error) => {
       console.error(error);
+      LoadingService.hide();
       ToastService.show("Error: " + error.message, true);
     });
   }

@@ -4,6 +4,7 @@ import { IModule } from '../../core/interfaces';
 import { Button } from '../../core/components/button';
 import { ENV } from "../../config";
 import { ToastService } from '../../core/services/toast-service';
+import { LoadingService } from '../../core/services/loading-service';
 export class AutoLanguageModule implements IModule {
   public id = "module-lang";
   public name = "Auto Language";
@@ -43,10 +44,11 @@ export class AutoLanguageModule implements IModule {
 
   private async execute(wholeDocument: boolean) {
     try {
-        ToastService.show("Memuat Kamus KBBI Offline...");
+        LoadingService.show("Memuat Kamus KBBI Offline...");
         await WordService.initDictionary();
+        LoadingService.hide();
 
-        WordService.processWithConfirmation(wholeDocument, async (range: any, isDryRun: boolean) => {
+        WordService.processWithConfirmation(wholeDocument, async (range, isDryRun) => {
           let count = 0;
           let hasChanges = false;
           
@@ -99,8 +101,9 @@ export class AutoLanguageModule implements IModule {
           
           return count;
         });
-    } catch (e: any) {
-        ToastService.show("Error memuat KBBI: " + e.message, true);
+    } catch (e) {
+        const error = e as Error;
+        ToastService.show("Error memuat KBBI: " + error.message, true);
     }
   }
 }

@@ -6,6 +6,7 @@ import { Button } from '../../core/components/button';
 import { Textarea } from '../../core/components/textarea';
 import { Checkbox } from '../../core/components/checkbox';
 import { ENV } from "../../config";
+import { LoadingService } from 'src/core/services/loading-service';
 
 export class BatchManualModule implements IModule {
   public id = "module-batch";
@@ -64,7 +65,7 @@ export class BatchManualModule implements IModule {
   }
 
   private async extractForeignWords() {
-    ToastService.show(`Memindai kata asing di dokumen...`);
+    LoadingService.show(`Memindai kata asing di dokumen...`);
     const matchCase = (document.getElementById("match-case") as HTMLInputElement).checked;
     
     try {
@@ -91,9 +92,12 @@ export class BatchManualModule implements IModule {
             ToastService.show("Tidak ditemukan kata asing.", true);
         }
       });
-    } catch (error: any) {
+    } catch (e) {
+      const error = e as Error;
       console.error(error);
       ToastService.show("Gagal mengekstrak: " + error.message, true);
+    } finally {
+      LoadingService.hide();
     }
   }
 
@@ -111,7 +115,7 @@ export class BatchManualModule implements IModule {
       return;
     }
 
-    WordService.processWithConfirmation(wholeDocument, async (range: any, isDryRun: boolean) => {
+    WordService.processWithConfirmation(wholeDocument, async (range, isDryRun) => {
       let count = 0;
       let hasChanges = false;
       
