@@ -1,11 +1,12 @@
 /// <reference types="office-js" />
 import { WordService } from '../../core/services/word-service';
+import { DictionaryService } from '../../core/services/dictionary-service';
+import { WordScannerService } from '../../core/services/word-scanner-service';
 import { ToastService } from '../../core/services/toast-service';
 import { IModule } from '../../core/interfaces';
 import { Button } from '../../core/components/button';
 import { Textarea } from '../../core/components/textarea';
 import { Checkbox } from '../../core/components/checkbox';
-import { ENV } from "../../config";
 import { LoadingService } from '../../core/services/loading-service';
 
 export class BatchManualModule implements IModule {
@@ -70,7 +71,11 @@ export class BatchManualModule implements IModule {
     
     try {
       await Word.run(async (context) => {
-        const foreignWords = await WordService.extractForeignWords(context, matchCase);
+        const body = context.document.body;
+        body.load("text");
+        await context.sync();
+
+        const foreignWords = await DictionaryService.extractForeignWordsFromText(body.text, matchCase);
 
         const uniqueWordsArray = Array.from(foreignWords);
         if (uniqueWordsArray.length > 0) {
@@ -116,45 +121,7 @@ export class BatchManualModule implements IModule {
     }
 
     WordService.processWithConfirmation(wholeDocument, async (range, isDryRun) => {
-      let count = 0;
-      let hasChanges = false;
-      
-      const allSearchResults = [];
-      let batchCount = 0;
-      for (const targetWord of wordsToMatch) {
-          const searchResults = range.search(targetWord, { 
-              matchWholeWord: true, 
-              matchCase: matchCase 
-          });
-          searchResults.load("items");
-          allSearchResults.push(searchResults);
-          
-          batchCount++;
-          if (batchCount % 50 === 0) {
-              await range.context.sync();
-          }
-      }
-      
-      // Perform a final sync for any remaining queued searches
-      await range.context.sync();
-      
-      for (const searchResults of allSearchResults) {
-          for (let i = 0; i < searchResults.items.length; i++) {
-              count++;
-              if (!isDryRun) {
-                  if (ENV.FORMAT_STYLE.ITALIC) {
-                      searchResults.items[i].font.italic = true;
-                  }
-                  hasChanges = true;
-              }
-          }
-      }
-
-      if (hasChanges && !isDryRun) {
-          await range.context.sync();
-      }
-      
-      return count;
+      return await WordScannerService.scanAndFormat(range, wordsToMatch, matchCase, isDryRun);
     });
   }
 }

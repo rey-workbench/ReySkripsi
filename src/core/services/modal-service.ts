@@ -1,28 +1,21 @@
 import styles from '../components/css/modal.css';
 import btnStyles from '../components/css/button.css';
+import { DOMService } from './dom-service';
 
 export class ModalService {
   public static showConfirmation(message: string): Promise<boolean> {
     return new Promise((resolve) => {
-        let modal = document.getElementById("confirmation-modal");
-        
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'confirmation-modal';
-            modal.className = styles.overlay;
-            
-            modal.innerHTML = `
-                <div class="${styles.content}">
-                    <h3 id="modal-title" class="ms-font-l" style="margin-top: 0;"></h3>
-                    <p id="modal-message" class="ms-font-m"></p>
-                    <div class="${styles.actions}" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
-                        <button id="modal-btn-cancel" class="${btnStyles.button} ${btnStyles.secondary}">Batal</button>
-                        <button id="modal-btn-confirm" class="${btnStyles.button} ${btnStyles.primary}">OK</button>
-                    </div>
+        const innerHTML = `
+            <div class="${styles.content}">
+                <h3 id="modal-title" class="ms-font-l" style="margin-top: 0;"></h3>
+                <p id="modal-message" class="ms-font-m"></p>
+                <div class="${styles.actions}" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                    <button id="modal-btn-cancel" class="${btnStyles.button} ${btnStyles.secondary}">Batal</button>
+                    <button id="modal-btn-confirm" class="${btnStyles.button} ${btnStyles.primary}">OK</button>
                 </div>
-            `;
-            document.body.appendChild(modal);
-        }
+            </div>
+        `;
+        const modal = DOMService.getOrCreateElement('confirmation-modal', styles.overlay, innerHTML);
 
         const modalMessage = document.getElementById("modal-message");
         const btnCancel = document.getElementById("modal-btn-cancel");

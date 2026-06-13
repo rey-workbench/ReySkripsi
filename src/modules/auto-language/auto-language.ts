@@ -1,8 +1,9 @@
 /// <reference types="office-js" />
 import { WordService } from '../../core/services/word-service';
+import { DictionaryService } from '../../core/services/dictionary-service';
+import { WordScannerService } from '../../core/services/word-scanner-service';
 import { IModule } from '../../core/interfaces';
 import { Button } from '../../core/components/button';
-import { ENV } from "../../config";
 import { ToastService } from '../../core/services/toast-service';
 import { LoadingService } from '../../core/services/loading-service';
 export class AutoLanguageModule implements IModule {
@@ -45,61 +46,23 @@ export class AutoLanguageModule implements IModule {
   private async execute(wholeDocument: boolean) {
     try {
         LoadingService.show("Memuat Kamus KBBI Offline...");
-        await WordService.initDictionary();
+        await DictionaryService.init();
         LoadingService.hide();
 
         WordService.processWithConfirmation(wholeDocument, async (range, isDryRun) => {
-          let count = 0;
-          let hasChanges = false;
+          // Extrak teks dari range
+          range.load("text");
+          await range.context.sync();
           
-          // Use the Word API context to get the document text and find foreign words
-          const foreignWords = await WordService.extractForeignWords(range.context, false);
+          const foreignWords = await DictionaryService.extractForeignWordsFromText(range.text, false);
           const wordsToMatch = Array.from(foreignWords);
 
           if (wordsToMatch.length === 0) {
               return 0; // No foreign words found
           }
 
-          // Queue all searches with chunking
-          const allSearchResults = [];
-          let batchCount = 0;
-          for (const targetWord of wordsToMatch) {
-              const searchResults = range.search(targetWord, { 
-                  matchWholeWord: true, 
-                  matchCase: false 
-              });
-              searchResults.load("items");
-              allSearchResults.push(searchResults);
-              
-              batchCount++;
-              if (batchCount % 50 === 0) {
-                  // Sync every 50 words to avoid freezing the Word host or PayloadTooLarge error
-                  await range.context.sync();
-              }
-          }
-          
-          // Perform a final sync for any remaining queued searches
-          await range.context.sync();
-          
-          // Iterate over results and queue formatting changes
-          for (const searchResults of allSearchResults) {
-              for (let i = 0; i < searchResults.items.length; i++) {
-                  count++;
-                  if (!isDryRun) {
-                      if (ENV.FORMAT_STYLE.ITALIC) {
-                          searchResults.items[i].font.italic = true;
-                      }
-                      hasChanges = true;
-                  }
-              }
-          }
-
-          // Final sync to apply changes if any
-          if (hasChanges && !isDryRun) {
-              await range.context.sync();
-          }
-          
-          return count;
+          // Gunakan scanner untuk apply
+          return await WordScannerService.scanAndFormat(range, wordsToMatch, false, isDryRun);
         });
     } catch (e) {
         const error = e as Error;

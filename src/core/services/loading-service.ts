@@ -1,24 +1,13 @@
 import styles from '../components/css/loading.css';
+import { DOMService } from './dom-service';
 
 export class LoadingService {
     static show(text: string = "Memproses...") {
-        let overlay = document.getElementById('loading-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'loading-overlay';
-            overlay.className = styles['loading-overlay'] || 'loading-overlay';
-            
-            const spinner = document.createElement('div');
-            spinner.className = styles.spinner || 'spinner';
-            
-            const textEl = document.createElement('div');
-            textEl.id = 'loading-text';
-            textEl.className = styles['loading-text'] || 'loading-text';
-            
-            overlay.appendChild(spinner);
-            overlay.appendChild(textEl);
-            document.body.appendChild(overlay);
-        }
+        const innerHTML = `
+            <div class="${styles.spinner || 'spinner'}"></div>
+            <div id="loading-text" class="${styles['loading-text'] || 'loading-text'}"></div>
+        `;
+        const overlay = DOMService.getOrCreateElement('loading-overlay', styles['loading-overlay'] || 'loading-overlay', innerHTML);
 
         const textEl = document.getElementById('loading-text');
         if (textEl) {

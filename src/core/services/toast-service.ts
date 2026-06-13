@@ -1,15 +1,9 @@
 import styles from '../components/css/toast.css';
+import { DOMService } from './dom-service';
 
 export class ToastService {
   public static show(message: string, isError: boolean = false) {
-    let toast = document.getElementById('toast-container');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toast-container';
-        toast.className = styles.toast;
-        document.body.appendChild(toast);
-    }
-
+    const toast = DOMService.getOrCreateElement('toast-container', styles.toast);
     toast.textContent = message;
     
     if (isError) {
