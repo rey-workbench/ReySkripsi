@@ -115,14 +115,20 @@ export class BatchManualModule implements IModule {
       let count = 0;
       let hasChanges = false;
       
+      const allSearchResults = [];
       for (const targetWord of wordsToMatch) {
           const searchResults = range.search(targetWord, { 
               matchWholeWord: true, 
               matchCase: matchCase 
           });
           searchResults.load("items");
-          await range.context.sync();
-          
+          allSearchResults.push(searchResults);
+      }
+      
+      // Perform a single sync for all queued searches
+      await range.context.sync();
+      
+      for (const searchResults of allSearchResults) {
           for (let i = 0; i < searchResults.items.length; i++) {
               count++;
               if (!isDryRun) {

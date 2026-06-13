@@ -58,14 +58,22 @@ export class AutoLanguageModule implements IModule {
               return 0; // No foreign words found
           }
 
+          // Queue all searches
+          const allSearchResults = [];
           for (const targetWord of wordsToMatch) {
               const searchResults = range.search(targetWord, { 
                   matchWholeWord: true, 
                   matchCase: false 
               });
               searchResults.load("items");
-              await range.context.sync();
-              
+              allSearchResults.push(searchResults);
+          }
+          
+          // Perform a single sync for all queued searches
+          await range.context.sync();
+          
+          // Iterate over results and queue formatting changes
+          for (const searchResults of allSearchResults) {
               for (let i = 0; i < searchResults.items.length; i++) {
                   count++;
                   if (!isDryRun) {
@@ -77,6 +85,7 @@ export class AutoLanguageModule implements IModule {
               }
           }
 
+          // Final sync to apply changes if any
           if (hasChanges && !isDryRun) {
               await range.context.sync();
           }
