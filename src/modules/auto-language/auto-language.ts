@@ -58,8 +58,9 @@ export class AutoLanguageModule implements IModule {
               return 0; // No foreign words found
           }
 
-          // Queue all searches
+          // Queue all searches with chunking
           const allSearchResults = [];
+          let batchCount = 0;
           for (const targetWord of wordsToMatch) {
               const searchResults = range.search(targetWord, { 
                   matchWholeWord: true, 
@@ -67,9 +68,15 @@ export class AutoLanguageModule implements IModule {
               });
               searchResults.load("items");
               allSearchResults.push(searchResults);
+              
+              batchCount++;
+              if (batchCount % 50 === 0) {
+                  // Sync every 50 words to avoid freezing the Word host or PayloadTooLarge error
+                  await range.context.sync();
+              }
           }
           
-          // Perform a single sync for all queued searches
+          // Perform a final sync for any remaining queued searches
           await range.context.sync();
           
           // Iterate over results and queue formatting changes

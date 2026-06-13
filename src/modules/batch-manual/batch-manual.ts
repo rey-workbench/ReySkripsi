@@ -16,12 +16,9 @@ export class BatchManualModule implements IModule {
   public get htmlContent(): string {
       const extractBtn = Button.render({
           id: 'btn-extract-words',
-          text: 'Extrak Otomatis (KBBI)',
-          variant: 'secondary',
-          style: 'margin: 0; padding: 4px 12px; font-size: 12px; height: 32px; width: auto; box-sizing: border-box;'
+          text: 'Extrak Kata Asing Otomatis',
+          variant: 'secondary'
       });
-      
-      const topRightExtractGroup = `<div style="display: flex; align-items: center; gap: 8px;">${extractBtn}</div>`;
 
       return `
                 <p class="ms-font-s" style="margin-bottom: 16px; color: #4b5563;">Miringkan kata-kata spesifik secara manual di seluruh dokumen.</p>
@@ -30,9 +27,12 @@ export class BatchManualModule implements IModule {
                     id: 'batch-input', 
                     label: 'Daftar Kata (Pisahkan dengan koma)', 
                     placeholder: 'Contoh: server, download, database', 
-                    rows: 5, 
-                    topRightElement: topRightExtractGroup
+                    rows: 5
                 })}
+
+                <div style="margin-top: 8px; margin-bottom: 16px;">
+                    ${extractBtn}
+                </div>
                 ${Checkbox.render({
                     id: 'match-case', 
                     label: 'Match Case (Sensitif huruf besar/kecil)'
@@ -116,6 +116,7 @@ export class BatchManualModule implements IModule {
       let hasChanges = false;
       
       const allSearchResults = [];
+      let batchCount = 0;
       for (const targetWord of wordsToMatch) {
           const searchResults = range.search(targetWord, { 
               matchWholeWord: true, 
@@ -123,9 +124,14 @@ export class BatchManualModule implements IModule {
           });
           searchResults.load("items");
           allSearchResults.push(searchResults);
+          
+          batchCount++;
+          if (batchCount % 50 === 0) {
+              await range.context.sync();
+          }
       }
       
-      // Perform a single sync for all queued searches
+      // Perform a final sync for any remaining queued searches
       await range.context.sync();
       
       for (const searchResults of allSearchResults) {
