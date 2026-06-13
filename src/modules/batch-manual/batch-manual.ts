@@ -6,7 +6,7 @@ import { Button } from '../../core/components/button';
 import { Textarea } from '../../core/components/textarea';
 import { Checkbox } from '../../core/components/checkbox';
 import { ENV } from "../../config";
-import { LoadingService } from 'src/core/services/loading-service';
+import { LoadingService } from '../../core/services/loading-service';
 
 export class BatchManualModule implements IModule {
   public id = "module-batch";
