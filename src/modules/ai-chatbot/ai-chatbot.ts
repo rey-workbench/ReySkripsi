@@ -7,15 +7,27 @@ import { GeminiService } from '../../core/services/gemini-service';
 
 export class AiChatbotModule implements IModule {
     public id = "module-ai-chatbot";
-    public name = "AI Chatbot";
+    public name = "Ask AI";
     public iconClass = "ms-Icon--Robot";
     public iconColor = "#107c41";
     
     public get htmlContent(): string {
         return `
-            <div class="module-header">
-                <h3 class="ms-font-l" style="margin: 0; color: #111827;">Asisten AI</h3>
-                <p class="ms-font-s" style="color: #6b7280; margin-top: 4px;">Powered by Gemini</p>
+            <div class="module-header" style="display: flex; align-items: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; flex-shrink: 0;">
+                    <defs>
+                        <linearGradient id="ai-star-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#8b5cf6"/>
+                            <stop offset="50%" stop-color="#3b82f6"/>
+                            <stop offset="100%" stop-color="#0ea5e9"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M11.5 0C11.5 5.5 16.5 10.5 22 10.5C16.5 10.5 11.5 15.5 11.5 21C11.5 15.5 6.5 10.5 1 10.5C6.5 10.5 11.5 5.5 11.5 0Z" fill="url(#ai-star-grad)"/>
+                </svg>
+                <div>
+                    <h3 class="ms-font-l" style="margin: 0; color: #111827;">Ask AI</h3>
+                    <p class="ms-font-s" style="color: #6b7280; margin-top: 4px;">Powered by Gemini</p>
+                </div>
             </div>
             
             <div class="module-content" style="display: flex; flex-direction: column; height: calc(100vh - 120px);">
@@ -60,20 +72,36 @@ export class AiChatbotModule implements IModule {
                         </div>
                     </div>
                     
+                    <!-- Skill Badge -->
+                    <div id="ai-skill-badge" style="display: none; align-items: center; background: #e0f2fe; color: #0369a1; font-size: 12px; padding: 4px 8px; border-radius: 12px; margin-right: 8px; font-weight: 600; gap: 4px;">
+                        <span id="ai-skill-text"></span>
+                        <i class="ms-Icon ms-Icon--Cancel" id="ai-skill-clear" style="cursor: pointer; font-size: 10px; margin-left: 4px;" title="Hapus"></i>
+                    </div>
+                    <!-- Hidden input to store skill context -->
+                    <input type="hidden" id="ai-skill-value" value="" />
+                    
                     <input type="text" id="ai-chat-input" placeholder="Minta Gemini..." style="flex: 1; background: transparent; border: none; outline: none; font-size: 14px; padding: 8px 0; color: #111827;" />
                     
-                    <select id="ai-model-select" style="background: transparent; border: none; font-size: 13px; color: #374151; font-weight: 600; margin-left: 8px; outline: none; cursor: pointer; -webkit-appearance: none; appearance: none; padding-right: 4px;">
-                        <option value="gemini-3.5-flash">Flash 3.5</option>
-                        <option value="gemini-3-flash-preview">Flash 3</option>
-                        <option value="gemini-3.1-pro-preview">Pro 3.1</option>
-                        <option value="gemini-3.1-flash-lite">Lite 3.1</option>
-                        <option value="gemini-2.5-pro">Pro 2.5</option>
-                        <option value="gemini-2.5-flash">Flash 2.5</option>
-                        <option value="gemini-2.5-flash-lite">Lite 2.5</option>
-                    </select>
-                    <i class="ms-Icon ms-Icon--ChevronDown" style="font-size: 10px; color: #374151; margin-right: 12px;"></i>
+                    <!-- Custom Dropdown Trigger -->
+                    <div id="ai-model-trigger" style="display: flex; align-items: center; cursor: pointer; padding: 4px 8px; border-radius: 16px; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
+                        <span id="ai-model-display" style="font-size: 13px; color: #374151; font-weight: 600; margin-right: 4px;">Flash 3.5</span>
+                        <i class="ms-Icon ms-Icon--ChevronDown" style="font-size: 10px; color: #374151;"></i>
+                    </div>
+                    
+                    <!-- Custom Dropdown Menu -->
+                    <div id="ai-model-menu" style="display: none; position: absolute; bottom: 100%; right: 40px; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 4px 0; min-width: 120px; z-index: 100;">
+                        <div class="ai-model-item" data-value="gemini-3.5-flash" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Flash 3.5</div>
+                        <div class="ai-model-item" data-value="gemini-3-flash-preview" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Flash 3</div>
+                        <div class="ai-model-item" data-value="gemini-3.1-pro-preview" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Pro 3.1</div>
+                        <div class="ai-model-item" data-value="gemini-3.1-flash-lite" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Lite 3.1</div>
+                        <div class="ai-model-item" data-value="gemini-2.5-pro" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Pro 2.5</div>
+                        <div class="ai-model-item" data-value="gemini-2.5-flash" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Flash 2.5</div>
+                        <div class="ai-model-item" data-value="gemini-2.5-flash-lite" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Lite 2.5</div>
+                    </div>
+                    <!-- Hidden input to store selected model -->
+                    <input type="hidden" id="ai-model-select" value="gemini-3.5-flash" />
 
-                    <button id="ai-btn-send" style="background: #107c41; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; color: white; transition: background 0.2s;" onmouseover="this.style.background='#0c5e31'" onmouseout="this.style.background='#107c41'">
+                    <button id="ai-btn-send" style="background: #107c41; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; color: white; transition: background 0.2s; margin-left: 8px;" onmouseover="this.style.background='#0c5e31'" onmouseout="this.style.background='#107c41'">
                         <i class="ms-Icon ms-Icon--Send" style="font-size: 14px; margin-left: 2px;"></i>
                     </button>
                 </div>
@@ -86,6 +114,15 @@ export class AiChatbotModule implements IModule {
         const inputField = document.getElementById("ai-chat-input");
         const plusBtn = document.getElementById("ai-plus-btn");
         const plusMenu = document.getElementById("ai-plus-menu");
+        const skillBadge = document.getElementById("ai-skill-badge");
+        const skillText = document.getElementById("ai-skill-text");
+        const skillClear = document.getElementById("ai-skill-clear");
+        const skillValue = document.getElementById("ai-skill-value") as HTMLInputElement;
+        
+        const modelTrigger = document.getElementById("ai-model-trigger");
+        const modelMenu = document.getElementById("ai-model-menu");
+        const modelDisplay = document.getElementById("ai-model-display");
+        const modelSelect = document.getElementById("ai-model-select") as HTMLInputElement;
         
         if (btnSend) btnSend.addEventListener("click", () => this.handleSend());
         if (inputField) {
@@ -97,29 +134,68 @@ export class AiChatbotModule implements IModule {
             });
         }
         
+        // Custom Model Dropdown Logic
+        if (modelTrigger && modelMenu) {
+            modelTrigger.addEventListener("click", (e) => {
+                e.stopPropagation();
+                modelMenu.style.display = modelMenu.style.display === "none" ? "block" : "none";
+                if (plusMenu) plusMenu.style.display = "none";
+            });
+            
+            const modelItems = modelMenu.querySelectorAll('.ai-model-item');
+            modelItems.forEach(item => {
+                item.addEventListener('mouseover', () => (item as HTMLElement).style.background = '#f3f2f1');
+                item.addEventListener('mouseout', () => (item as HTMLElement).style.background = 'transparent');
+                
+                item.addEventListener('click', (e) => {
+                    const el = e.target as HTMLElement;
+                    if (modelDisplay && modelSelect) {
+                        modelDisplay.innerText = el.innerText;
+                        modelSelect.value = el.getAttribute('data-value') || 'gemini-3.5-flash';
+                    }
+                    modelMenu.style.display = "none";
+                });
+            });
+        }
+        
+        // Plus Menu Logic
         if (plusBtn && plusMenu) {
             plusBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 plusMenu.style.display = plusMenu.style.display === "none" ? "block" : "none";
+                if (modelMenu) modelMenu.style.display = "none";
             });
             
-            // Hide menu when clicking outside
-            document.addEventListener("click", () => {
-                plusMenu.style.display = "none";
-            });
-            
-            // Handle menu item clicks
+            // Handle menu item clicks to set skill badge
             const menuItems = plusMenu.querySelectorAll('.ai-menu-item');
             menuItems.forEach(item => {
                 item.addEventListener('click', (e) => {
                     const text = (e.target as HTMLElement).innerText.trim();
-                    if (inputField) {
-                        (inputField as HTMLInputElement).value = `[${text}] `;
-                        inputField.focus();
+                    if (skillBadge && skillText && skillValue) {
+                        skillText.innerText = text;
+                        skillValue.value = text;
+                        skillBadge.style.display = "flex";
                     }
+                    plusMenu.style.display = "none";
+                    if (inputField) inputField.focus();
                 });
             });
         }
+        
+        // Clear skill logic
+        if (skillClear && skillBadge && skillValue) {
+            skillClear.addEventListener("click", (e) => {
+                e.stopPropagation();
+                skillBadge.style.display = "none";
+                skillValue.value = "";
+            });
+        }
+        
+        // Hide menus when clicking outside
+        document.addEventListener("click", () => {
+            if (plusMenu) plusMenu.style.display = "none";
+            if (modelMenu) modelMenu.style.display = "none";
+        });
     }
 
     private addMessage(sender: 'User' | 'AI', text: string) {
@@ -249,7 +325,7 @@ export class AiChatbotModule implements IModule {
 
     private getApiKeyAndModel(): { apiKey: string, model: string } | null {
         const apiKeyEl = document.getElementById("ai-api-key") as HTMLInputElement;
-        const modelEl = document.getElementById("ai-model-select") as HTMLSelectElement;
+        const modelEl = document.getElementById("ai-model-select") as HTMLInputElement;
         
         if (!apiKeyEl || !apiKeyEl.value.trim()) {
             ToastService.show("Silakan masukkan Gemini API Key terlebih dahulu.", true);
@@ -267,15 +343,26 @@ export class AiChatbotModule implements IModule {
         if (!config) return;
 
         const inputEl = document.getElementById("ai-chat-input") as HTMLInputElement;
+        const skillValueEl = document.getElementById("ai-skill-value") as HTMLInputElement;
         if (!inputEl) return;
         
-        const message = inputEl.value.trim();
-        const userPrompt = message || "Tolong analisis, berikan feedback, dan revisi (jika diperlukan) tulisan ini.";
+        const rawMessage = inputEl.value.trim();
+        const skillContext = skillValueEl && skillValueEl.value ? `[Konteks Skill: ${skillValueEl.value}] ` : "";
+        const finalMessage = skillContext + rawMessage;
+        
+        const userPrompt = finalMessage || "Tolong analisis, berikan feedback, dan revisi (jika diperlukan) tulisan ini.";
         
         if (inputEl) inputEl.value = "";
         
         try {
             ToastService.showProgress("Membaca konteks dokumen...", 0);
+            
+            // Tampilkan chat pengguna (hanya rawMessage yang ditampilkan ke UI agar bersih, atau tampilkan dengan tag skill)
+            const displayMessage = skillValueEl && skillValueEl.value 
+                ? `<span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px;">${skillValueEl.value}</span> ${rawMessage}` 
+                : rawMessage || "Tolong analisis teks...";
+                
+            this.addMessage('User', displayMessage);
             let contextText = "";
             let contextType = "Dokumen Keseluruhan";
             
@@ -284,24 +371,35 @@ export class AiChatbotModule implements IModule {
                 selection.load("text");
                 await context.sync();
                 
-                if (selection.text && selection.text.trim()) {
+                if (skillValueEl && skillValueEl.value === "Fokus Teks Terpilih" && selection.text && selection.text.trim()) {
                     contextText = selection.text;
                     contextType = "Teks Terpilih";
-                } else {
+                } else if (skillValueEl && skillValueEl.value === "Gunakan Seluruh Dokumen") {
                     const body = context.document.body;
                     body.load("text");
                     await context.sync();
                     contextText = body.text;
                     contextType = "Dokumen Keseluruhan";
+                } else {
+                    // Default behavior if no specific skill badge
+                    if (selection.text && selection.text.trim()) {
+                        contextText = selection.text;
+                        contextType = "Teks Terpilih";
+                    } else {
+                        const body = context.document.body;
+                        body.load("text");
+                        await context.sync();
+                        contextText = body.text;
+                        contextType = "Dokumen Keseluruhan";
+                    }
                 }
             });
             
             ToastService.hide();
             
             if (!contextText.trim()) {
-                if (message) {
-                    this.addMessage('User', message);
-                    await this.fetchResponse(message, config.apiKey, config.model);
+                if (rawMessage) {
+                    await this.fetchResponse(userPrompt, config.apiKey, config.model);
                     return;
                 } else {
                     ToastService.show("Dokumen kosong dan tidak ada pesan yang diketik.", true);
@@ -312,11 +410,7 @@ export class AiChatbotModule implements IModule {
             // Gunakan konteks dokumen sebagai System Prompt (System Instruction)
             const systemPrompt = `Anda adalah asisten AI cerdas untuk penulisan Microsoft Word. Berikut adalah isi ${contextType.toLowerCase()} yang sedang dikerjakan pengguna. Jadikan ini sebagai konteks dasar Anda untuk menjawab setiap permintaan pengguna. Jangan berikan ringkasan kecuali diminta.\n\nKonteks:\n"""\n${contextText}\n"""`;
             
-            // Pesan dari user
-            const finalUserPrompt = message || "Tolong analisis teks di atas dan berikan saran perbaikan.";
-            
-            this.addMessage('User', finalUserPrompt);
-            await this.fetchResponse(finalUserPrompt, config.apiKey, config.model, systemPrompt);
+            await this.fetchResponse(userPrompt, config.apiKey, config.model, systemPrompt);
             
         } catch (error: any) {
             ToastService.show("Error: " + error.message, true);
