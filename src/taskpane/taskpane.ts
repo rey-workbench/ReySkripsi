@@ -8,6 +8,7 @@ import { AutoUpdater } from '../core/services/auto-updater';
 import { AppRouter } from '../core/app-router';
 import { AutoLanguageModule } from '../modules/auto-language/auto-language';
 import { BatchManualModule } from '../modules/batch-manual/batch-manual';
+import { AiChatbotModule } from '../modules/ai-chatbot/ai-chatbot';
 import './taskpane.css';
 
 Office.onReady((info) => {
@@ -20,6 +21,7 @@ Office.onReady((info) => {
     // Register Modules (SRP: AppRouter handles UI generation and bindings)
     app.register(new AutoLanguageModule());
     app.register(new BatchManualModule());
+    app.register(new AiChatbotModule());
     
     // Boot up the application
     app.start();
