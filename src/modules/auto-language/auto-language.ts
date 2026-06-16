@@ -1,9 +1,9 @@
-import { WordService } from '../../core/services/word-service';
-import { DictionaryService } from '../../core/services/dictionary-service';
-import { WordScannerService } from '../../core/services/word-scanner-service';
+import { WordService } from '../../core/services/word/word-service';
+import { DictionaryService } from '../../core/services/dictionary/dictionary-service';
+import { WordScannerService } from '../../core/services/word/word-scanner-service';
 import { IModule } from '../../core/interfaces';
 import { Button } from '../../core/components/button';
-import { ToastService } from '../../core/services/toast-service';
+import { ToastService } from '../../core/services/ui/toast-service';
 export class AutoLanguageModule implements IModule {
   public id = "module-lang";
   public name = "Auto Language";

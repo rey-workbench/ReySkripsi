@@ -1,6 +1,6 @@
 /// <reference types="office-js" />
-import { ENV } from '../../config';
-import { ICancellationToken, TProgressCallback } from '../interfaces';
+import { ENV } from '../../../config';
+import { ICancellationToken, TProgressCallback } from '../../interfaces';
 
 export class WordScannerService {
     /**

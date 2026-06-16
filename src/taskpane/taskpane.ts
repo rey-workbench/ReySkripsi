@@ -4,11 +4,9 @@
  */
 
 /// <reference types="office-js" />
-import { AutoUpdater } from '../core/services/auto-updater';
+import { AutoUpdater } from '../core/services/system/auto-updater';
 import { AppRouter } from '../core/app-router';
-import { AutoLanguageModule } from '../modules/auto-language/auto-language';
-import { BatchManualModule } from '../modules/batch-manual/batch-manual';
-import { AiChatbotModule } from '../modules/ai-chatbot/ai-chatbot';
+import { AutoLanguageModule, BatchManualModule, AiChatbotModule } from '../modules/index';
 import './taskpane.css';
 
 Office.onReady((info) => {

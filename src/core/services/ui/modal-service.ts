@@ -1,5 +1,5 @@
-import styles from '../components/css/modal.css';
-import btnStyles from '../components/css/button.css';
+import styles from '../../components/css/modal.css';
+import btnStyles from '../../components/css/button.css';
 import { DOMService } from './dom-service';
 
 export class ModalService {

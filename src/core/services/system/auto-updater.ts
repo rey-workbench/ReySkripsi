@@ -1,4 +1,4 @@
-import { ToastService } from './toast-service';
+import { ToastService } from '../ui/toast-service';
 
 export class AutoUpdater {
     private currentVersion: string | null = null;

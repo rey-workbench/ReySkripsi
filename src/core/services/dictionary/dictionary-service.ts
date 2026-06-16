@@ -1,4 +1,4 @@
-import { ENV } from '../../config';
+import { ENV } from '../../../config';
 // @ts-ignore
 import { Stemmer } from 'sastrawijs';
 

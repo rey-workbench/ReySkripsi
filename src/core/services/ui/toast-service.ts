@@ -1,4 +1,4 @@
-import styles from '../components/css/toast.css';
+import styles from '../../components/css/toast.css';
 import { DOMService } from './dom-service';
 
 export class ToastService {

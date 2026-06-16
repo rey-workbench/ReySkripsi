@@ -1,5 +1,7 @@
-export class GeminiService {
-    public static async generateContent(prompt: string, apiKey: string, model: string, systemInstruction?: string): Promise<string> {
+import { IAiService } from './iai-service';
+
+export class GeminiService implements IAiService {
+    public async generateContent(prompt: string, apiKey: string, model: string, systemInstruction?: string): Promise<string> {
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         
         try {

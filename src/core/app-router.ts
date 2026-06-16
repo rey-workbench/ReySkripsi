@@ -4,7 +4,6 @@ import { Layout } from './components/layout';
 
 export class AppRouter {
     private modules: IModule[] = [];
-    private currentModuleId: string | null = null;
 
     public register(module: IModule) {
         this.modules.push(module);

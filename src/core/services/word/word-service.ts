@@ -1,7 +1,7 @@
 /// <reference types="office-js" />
-import { ToastService } from './toast-service';
-import { ModalService } from './modal-service';
-import { ICancellationToken, TProgressCallback } from '../interfaces';
+import { ToastService } from '../ui/toast-service';
+import { ModalService } from '../ui/modal-service';
+import { ICancellationToken, TProgressCallback } from '../../interfaces';
 
 export class WordService {
   private static isProcessing = false;
