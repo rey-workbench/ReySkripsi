@@ -204,6 +204,45 @@ export class AiChatbotModule implements IModule {
             if (plusMenu) plusMenu.style.display = "none";
             if (modelMenu) modelMenu.style.display = "none";
         });
+
+        // Event delegation for citations
+        const historyContainer = document.getElementById("ai-chat-history");
+        if (historyContainer) {
+            historyContainer.addEventListener("click", (e) => {
+                const target = e.target as HTMLElement;
+                const citationEl = target.closest(".ai-citation") as HTMLElement;
+                if (citationEl) {
+                    const searchText = citationEl.getAttribute("data-search");
+                    if (searchText) {
+                        this.jumpToText(searchText);
+                    }
+                }
+            });
+        }
+    }
+
+    private async jumpToText(searchText: string) {
+        try {
+            await Word.run(async (context) => {
+                const cleanSearchText = searchText.replace(/^["']|["']$/g, '').trim();
+                // Take up to 50 characters to search if it's too long, to ensure match even with formatting differences
+                const searchQuery = cleanSearchText.length > 50 ? cleanSearchText.substring(0, 50) : cleanSearchText;
+                
+                const results = context.document.body.search(searchQuery, { matchCase: false });
+                context.load(results);
+                await context.sync();
+                
+                if (results.items.length > 0) {
+                    results.items[0].select();
+                    await context.sync();
+                    ToastService.show("Teks referensi ditemukan.", false);
+                } else {
+                    ToastService.show("Teks referensi tidak ditemukan di dokumen saat ini.", true);
+                }
+            });
+        } catch (error: any) {
+            ToastService.show("Gagal mencari referensi: " + error.message, true);
+        }
     }
 
     private toggleLoadingState(isLoading: boolean) {
@@ -348,24 +387,27 @@ export class AiChatbotModule implements IModule {
             return tableHtml;
         });
 
+        // Lists (unordered)
+        html = html.replace(/^\s*[\*\-] (.*$)/gm, '<li style="margin-left:20px; margin-bottom:4px; list-style-type:disc;">$1</li>');
+        
+        // Lists (ordered)
+        html = html.replace(/^\s*\d+\.\s+(.*$)/gm, '<li style="margin-left:20px; margin-bottom:4px; list-style-type:decimal;">$1</li>');
+
         // Bold
         html = html.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
         
-        // Italic (using _text_ or *text*)
+        // Italic (using _text_ or *text*) - avoid matching newlines so it doesn't break on lists
         html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
-        html = html.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
+        html = html.replace(/\*([^\*\n]+)\*/g, '<em>$1</em>');
         
         // Headings
         html = html.replace(/^### (.*$)/gm, '<h3 style="margin:12px 0 4px 0; font-size:14px; font-weight:bold; color:#111827;">$1</h3>');
         html = html.replace(/^## (.*$)/gm, '<h2 style="margin:14px 0 4px 0; font-size:15px; font-weight:bold; color:#111827;">$1</h2>');
         html = html.replace(/^# (.*$)/gm, '<h1 style="margin:16px 0 4px 0; font-size:16px; font-weight:bold; color:#111827;">$1</h1>');
         
-        // Lists (unordered)
-        html = html.replace(/^\s*[\*\-] (.*$)/gm, '<li style="margin-left:20px; margin-bottom:4px; list-style-type:disc;">$1</li>');
-        
-        // Lists (ordered)
-        html = html.replace(/^\s*\d+\.\s+(.*$)/gm, '<li style="margin-left:20px; margin-bottom:4px; list-style-type:decimal;">$1</li>');
-        
+        // Citations: [REF:SearchText|DisplayText]
+        html = html.replace(/\[REF:([^\|]+)\|([^\]]+)\]/g, '<span class="ai-citation" data-search="$1" style="color:#0078D4; background:#e0f2fe; padding:2px 6px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:600; text-decoration:none; transition:background 0.2s;" onmouseover="this.style.background=\'#bae6fd\'" onmouseout="this.style.background=\'#e0f2fe\'" title="Klik untuk menuju ke bagian ini"><i class="ms-Icon ms-Icon--NavigateExternalInline" style="font-size:10px; margin-right:2px;"></i>$2</span>');
+
         // Line breaks
         html = html.replace(/\n/g, '<br/>');
         
@@ -498,7 +540,7 @@ export class AiChatbotModule implements IModule {
             }
 
             // Gunakan konteks dokumen sebagai System Prompt (System Instruction)
-            const systemPrompt = `Anda adalah asisten AI cerdas untuk penulisan Microsoft Word. Berikut adalah isi ${contextType.toLowerCase()} yang sedang dikerjakan pengguna. Jadikan ini sebagai konteks dasar Anda untuk menjawab setiap permintaan pengguna. Jangan berikan ringkasan kecuali diminta.\n\nKonteks:\n"""\n${contextText}\n"""`;
+            const systemPrompt = `Anda adalah asisten AI cerdas untuk penulisan Microsoft Word. Berikut adalah isi ${contextType.toLowerCase()} yang sedang dikerjakan pengguna. Jadikan ini sebagai konteks dasar Anda untuk menjawab setiap permintaan pengguna. Jangan berikan ringkasan kecuali diminta. Jika Anda mengutip atau merujuk pada bagian tertentu dari dokumen, WAJIB gunakan format sitasi [REF:Teks Pencarian|Teks Tampilan]. Contoh: "seperti yang dijelaskan pada [REF:Latar Belakang|hal 11]". Teks Pencarian harus berupa kutipan kalimat asli yang akurat dari dokumen agar sistem bisa menemukannya.\n\nKonteks:\n"""\n${contextText}\n"""`;
             
             await this.fetchResponse(userPrompt, config.apiKey, config.model, systemPrompt);
             
