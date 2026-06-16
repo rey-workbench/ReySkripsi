@@ -23,7 +23,6 @@ export class AiChatbotModule implements IModule {
                 </svg>
                 <div>
                     <h3 class="ms-font-l" style="margin: 0; color: #111827;">Ask AI</h3>
-                    <p class="ms-font-s" style="color: #6b7280; margin-top: 4px;">Powered by Gemini</p>
                 </div>
             </div>
             
