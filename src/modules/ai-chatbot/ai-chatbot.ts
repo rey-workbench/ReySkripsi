@@ -18,51 +18,64 @@ export class AiChatbotModule implements IModule {
                 <p class="ms-font-s" style="color: #6b7280; margin-top: 4px;">Powered by Gemini</p>
             </div>
             
-            <div class="module-content">
-                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
-                    <div>
-                        <label style="font-size: 13px; font-weight: 600; color: #374151;">Gemini API Key</label>
-                        <input type="password" id="ai-api-key" placeholder="Masukkan API Key Anda..." style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px;" />
+            <div class="module-content" style="display: flex; flex-direction: column; height: calc(100vh - 120px);">
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 13px; font-weight: 600; color: #374151;">Gemini API Key</label>
+                    <input type="password" id="ai-api-key" placeholder="Masukkan API Key Anda..." style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px;" />
+                </div>
+
+                <div id="ai-chat-history" style="flex: 1; overflow-y: auto; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
+                    <div id="ai-chat-empty" style="text-align: center; color: #6b7280; font-size: 13px; margin-top: 20px;">
+                        Mulai percakapan dengan AI. Pesan Anda akan direspons otomatis berdasarkan isi dokumen.
+                    </div>
+                </div>
+                
+                <div style="position: relative; display: flex; align-items: center; background: #f3f2f1; border-radius: 24px; padding: 6px 16px; border: 1px solid #e2e8f0;">
+                    <div id="ai-plus-btn" style="display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 4px; margin-right: 8px; border-radius: 50%; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
+                        <i class="ms-Icon ms-Icon--Add" style="font-size: 16px; color: #6b7280;"></i>
                     </div>
                     
-                    <div>
-                        ${Dropdown.render({
-                            id: 'ai-model-select',
-                            label: 'Model AI:',
-                            options: [
-                                { value: 'gemini-3-flash-preview', label: 'Gemini 3 Flash' },
-                                { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
-                                { value: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 (Pro)' },
-                                { value: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 (Lite)' },
-                                { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
-                                { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-                                { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' }
-                            ]
-                        })}
-                    </div>
-
-                    <div id="ai-chat-history" style="height: 320px; overflow-y: auto; padding: 12px; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb; display: flex; flex-direction: column; gap: 12px;">
-                        <div id="ai-chat-empty" style="text-align: center; color: #6b7280; font-size: 13px; margin-top: 20px;">
-                            Mulai percakapan dengan AI. Pesan Anda akan direspons otomatis berdasarkan isi dokumen.
+                    <!-- Popup Menu -->
+                    <div id="ai-plus-menu" style="display: none; position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 8px; min-width: 220px; z-index: 100;">
+                        <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
+                            <i class="ms-Icon ms-Icon--Document" style="font-size: 16px; color: #6b7280;"></i>
+                            Gunakan Seluruh Dokumen
+                        </div>
+                        <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
+                            <i class="ms-Icon ms-Icon--TextDocument" style="font-size: 16px; color: #6b7280;"></i>
+                            Fokus Teks Terpilih
+                        </div>
+                        <div style="height: 1px; background: #e2e8f0; margin: 6px 0;"></div>
+                        <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
+                            <i class="ms-Icon ms-Icon--Search" style="font-size: 16px; color: #6b7280;"></i>
+                            Pencarian Web (Search Grounding)
+                        </div>
+                        <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
+                            <i class="ms-Icon ms-Icon--Lightbulb" style="font-size: 16px; color: #6b7280;"></i>
+                            Mode Berpikir (Thinking)
+                        </div>
+                        <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
+                            <i class="ms-Icon ms-Icon--Code" style="font-size: 16px; color: #6b7280;"></i>
+                            Eksekusi Kode (Code Execution)
                         </div>
                     </div>
                     
-                    <div>
-                        ${Textarea.render({
-                            id: 'ai-chat-input',
-                            label: '',
-                            placeholder: 'Ketik pesan atau instruksi...',
-                            rows: 2
-                        })}
-                    </div>
+                    <input type="text" id="ai-chat-input" placeholder="Minta Gemini..." style="flex: 1; background: transparent; border: none; outline: none; font-size: 14px; padding: 8px 0; color: #111827;" />
                     
-                    <div>
-                        ${Button.render({
-                            id: 'ai-btn-send',
-                            text: 'Kirim Pesan',
-                            variant: 'primary'
-                        })}
-                    </div>
+                    <select id="ai-model-select" style="background: transparent; border: none; font-size: 13px; color: #374151; font-weight: 600; margin-left: 8px; outline: none; cursor: pointer; -webkit-appearance: none; appearance: none; padding-right: 4px;">
+                        <option value="gemini-3.5-flash">Flash 3.5</option>
+                        <option value="gemini-3-flash-preview">Flash 3</option>
+                        <option value="gemini-3.1-pro-preview">Pro 3.1</option>
+                        <option value="gemini-3.1-flash-lite">Lite 3.1</option>
+                        <option value="gemini-2.5-pro">Pro 2.5</option>
+                        <option value="gemini-2.5-flash">Flash 2.5</option>
+                        <option value="gemini-2.5-flash-lite">Lite 2.5</option>
+                    </select>
+                    <i class="ms-Icon ms-Icon--ChevronDown" style="font-size: 10px; color: #374151; margin-right: 12px;"></i>
+
+                    <button id="ai-btn-send" style="background: #107c41; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; color: white; transition: background 0.2s;" onmouseover="this.style.background='#0c5e31'" onmouseout="this.style.background='#107c41'">
+                        <i class="ms-Icon ms-Icon--Send" style="font-size: 14px; margin-left: 2px;"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -70,7 +83,43 @@ export class AiChatbotModule implements IModule {
 
     public onInit(): void {
         const btnSend = document.getElementById("ai-btn-send");
+        const inputField = document.getElementById("ai-chat-input");
+        const plusBtn = document.getElementById("ai-plus-btn");
+        const plusMenu = document.getElementById("ai-plus-menu");
+        
         if (btnSend) btnSend.addEventListener("click", () => this.handleSend());
+        if (inputField) {
+            inputField.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    this.handleSend();
+                }
+            });
+        }
+        
+        if (plusBtn && plusMenu) {
+            plusBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                plusMenu.style.display = plusMenu.style.display === "none" ? "block" : "none";
+            });
+            
+            // Hide menu when clicking outside
+            document.addEventListener("click", () => {
+                plusMenu.style.display = "none";
+            });
+            
+            // Handle menu item clicks
+            const menuItems = plusMenu.querySelectorAll('.ai-menu-item');
+            menuItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const text = (e.target as HTMLElement).innerText.trim();
+                    if (inputField) {
+                        (inputField as HTMLInputElement).value = `[${text}] `;
+                        inputField.focus();
+                    }
+                });
+            });
+        }
     }
 
     private addMessage(sender: 'User' | 'AI', text: string) {
@@ -217,7 +266,7 @@ export class AiChatbotModule implements IModule {
         const config = this.getApiKeyAndModel();
         if (!config) return;
 
-        const inputEl = document.getElementById("ai-chat-input") as HTMLTextAreaElement;
+        const inputEl = document.getElementById("ai-chat-input") as HTMLInputElement;
         if (!inputEl) return;
         
         const message = inputEl.value.trim();
