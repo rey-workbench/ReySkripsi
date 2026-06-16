@@ -14,42 +14,55 @@ export class AiChatbotModule implements IModule {
     public get htmlContent(): string {
         return `
             <div class="module-header">
-                <h3 class="ms-font-l" style="margin: 0; color: #111827;">Asisten AI (Gemini)</h3>
-                <p class="ms-font-s" style="color: #6b7280; margin-top: 4px;">Tanya AI untuk membantu penulisan dokumen Anda.</p>
+                <h3 class="ms-font-l" style="margin: 0; color: #111827;">Asisten AI</h3>
+                <p class="ms-font-s" style="color: #6b7280; margin-top: 4px;">Powered by Gemini</p>
             </div>
-            <div class="module-content" style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <label style="font-size: 13px; font-weight: 600; color: #242424;">Gemini API Key:</label>
-                    <input type="password" id="ai-api-key" placeholder="Masukkan API Key" style="padding: 6px; border: 1px solid #e1dfdd; border-radius: 4px; font-size: 14px;" />
-                </div>
-                
-                ${Dropdown.render({
-                    id: 'ai-model-select',
-                    label: 'Pilih Model Gemini:',
-                    options: [
-                        { value: 'gemini-3-flash-preview', label: 'Gemini 3 Flash' },
-                        { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
-                        { value: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 (Pro)' },
-                        { value: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 (Lite)' }
-                    ]
-                })}
+            
+            <div class="module-content">
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #374151;">Gemini API Key</label>
+                        <input type="password" id="ai-api-key" placeholder="Masukkan API Key Anda..." style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px;" />
+                    </div>
+                    
+                    <div>
+                        ${Dropdown.render({
+                            id: 'ai-model-select',
+                            label: 'Model AI:',
+                            options: [
+                                { value: 'gemini-3-flash-preview', label: 'Gemini 3 Flash' },
+                                { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
+                                { value: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 (Pro)' },
+                                { value: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 (Lite)' },
+                                { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+                                { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+                                { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' }
+                            ]
+                        })}
+                    </div>
 
-                <div id="ai-chat-history" style="height: 250px; overflow-y: auto; border: 1px solid #e1dfdd; padding: 8px; border-radius: 4px; background: #faf9f8; display: flex; flex-direction: column; gap: 8px;">
-                    <div style="font-size: 12px; color: #6b7280; text-align: center;">Mulai percakapan dengan AI</div>
-                </div>
-                ${Textarea.render({
-                    id: 'ai-chat-input',
-                    label: 'Pesan / Instruksi Anda:',
-                    placeholder: 'Tanyakan sesuatu atau berikan instruksi revisi...',
-                    rows: 3
-                })}
-                <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
-                    ${Button.render({
-                        id: 'ai-btn-send',
-                        text: 'Kirim Pesan',
-                        variant: 'primary',
-                        icon: 'ms-Icon--Send'
-                    })}
+                    <div id="ai-chat-history" style="height: 320px; overflow-y: auto; padding: 12px; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb; display: flex; flex-direction: column; gap: 12px;">
+                        <div id="ai-chat-empty" style="text-align: center; color: #6b7280; font-size: 13px; margin-top: 20px;">
+                            Mulai percakapan dengan AI. Pesan Anda akan direspons otomatis berdasarkan isi dokumen.
+                        </div>
+                    </div>
+                    
+                    <div>
+                        ${Textarea.render({
+                            id: 'ai-chat-input',
+                            label: '',
+                            placeholder: 'Ketik pesan atau instruksi...',
+                            rows: 2
+                        })}
+                    </div>
+                    
+                    <div>
+                        ${Button.render({
+                            id: 'ai-btn-send',
+                            text: 'Kirim Pesan',
+                            variant: 'primary'
+                        })}
+                    </div>
                 </div>
             </div>
         `;
@@ -64,52 +77,64 @@ export class AiChatbotModule implements IModule {
         const historyContainer = document.getElementById("ai-chat-history");
         if (!historyContainer) return;
         
+        const emptyState = document.getElementById("ai-chat-empty");
+        if (emptyState) emptyState.style.display = "none";
+        
+        const msgWrapper = document.createElement("div");
+        msgWrapper.style.display = "flex";
+        msgWrapper.style.flexDirection = "column";
+        msgWrapper.style.gap = "4px";
+        
+        const senderLabel = document.createElement("div");
+        senderLabel.style.fontWeight = "600";
+        senderLabel.style.fontSize = "12px";
+        senderLabel.style.color = sender === 'User' ? "#0078D4" : "#107c41";
+        senderLabel.innerText = sender === 'User' ? "Anda" : "AI";
+        
         const msgDiv = document.createElement("div");
-        msgDiv.style.padding = "8px";
+        msgDiv.style.fontSize = "13px";
+        msgDiv.style.lineHeight = "1.5";
+        msgDiv.style.color = "#333";
+        msgDiv.style.background = sender === 'User' ? "#f3f2f1" : "white";
+        msgDiv.style.border = sender === 'User' ? "none" : "1px solid #e2e8f0";
+        msgDiv.style.padding = "8px 12px";
         msgDiv.style.borderRadius = "4px";
-        msgDiv.style.fontSize = "14px";
-        msgDiv.style.display = "flex";
-        msgDiv.style.flexDirection = "column";
-        msgDiv.style.gap = "4px";
         
         if (sender === 'User') {
-            msgDiv.style.backgroundColor = "#e0f2fe";
-            msgDiv.style.color = "#0369a1";
-            msgDiv.style.alignSelf = "flex-end";
-            msgDiv.style.maxWidth = "85%";
-            msgDiv.innerHTML = `<strong>${sender}:</strong> <div>${this.formatMarkdown(text)}</div>`;
+            msgDiv.innerHTML = text.replace(/\n/g, "<br/>");
         } else {
-            msgDiv.style.backgroundColor = "#dcfce7";
-            msgDiv.style.color = "#15803d";
-            msgDiv.style.alignSelf = "flex-start";
-            msgDiv.style.maxWidth = "85%";
-            msgDiv.innerHTML = `<strong>${sender}:</strong> <div>${this.formatMarkdown(text)}</div>`;
+            msgDiv.innerHTML = this.formatMarkdown(text);
             
             // Add an action button to insert this AI response into the Word document
             const actionDiv = document.createElement("div");
-            actionDiv.style.marginTop = "8px";
-            actionDiv.style.textAlign = "right";
+            actionDiv.style.marginTop = "12px";
+            actionDiv.style.display = "flex";
+            actionDiv.style.justifyContent = "flex-end";
             
             const insertBtn = document.createElement("button");
-            insertBtn.innerText = "Sisipkan / Ganti di Dokumen";
-            insertBtn.style.fontSize = "11px";
-            insertBtn.style.padding = "4px 8px";
+            insertBtn.innerHTML = "<i class='ms-Icon ms-Icon--Insert' style='margin-right:4px;'></i> Sisipkan / Ganti di Dokumen";
+            insertBtn.style.fontSize = "12px";
+            insertBtn.style.fontWeight = "600";
+            insertBtn.style.padding = "8px 14px";
             insertBtn.style.cursor = "pointer";
-            insertBtn.style.border = "1px solid #16a34a";
+            insertBtn.style.border = "1px solid #107c41";
             insertBtn.style.backgroundColor = "transparent";
-            insertBtn.style.color = "#16a34a";
-            insertBtn.style.borderRadius = "4px";
+            insertBtn.style.color = "#107c41";
+            insertBtn.style.borderRadius = "20px";
+            insertBtn.style.transition = "all 0.2s";
             
             insertBtn.addEventListener("click", () => this.insertToDocument(text));
             insertBtn.addEventListener("mouseover", () => {
-                insertBtn.style.backgroundColor = "#16a34a";
+                insertBtn.style.backgroundColor = "#107c41";
                 insertBtn.style.color = "#ffffff";
+                insertBtn.style.boxShadow = "0 4px 10px rgba(16,124,65,0.2)";
             });
             insertBtn.addEventListener("mouseout", () => {
                 insertBtn.style.backgroundColor = "transparent";
-                insertBtn.style.color = "#16a34a";
+                insertBtn.style.color = "#107c41";
+                insertBtn.style.boxShadow = "none";
             });
-
+            
             actionDiv.appendChild(insertBtn);
             msgDiv.appendChild(actionDiv);
         }
@@ -235,11 +260,14 @@ export class AiChatbotModule implements IModule {
                 }
             }
 
-            const prompt = `${userPrompt}\n\nKonteks (${contextType}):\n"${contextText}"`;
-            const displayMessage = message ? message : `[Meminta AI memproses ${contextType.toLowerCase()}]`;
+            // Gunakan konteks dokumen sebagai System Prompt (System Instruction)
+            const systemPrompt = `Anda adalah asisten AI cerdas untuk penulisan Microsoft Word. Berikut adalah isi ${contextType.toLowerCase()} yang sedang dikerjakan pengguna. Jadikan ini sebagai konteks dasar Anda untuk menjawab setiap permintaan pengguna. Jangan berikan ringkasan kecuali diminta.\n\nKonteks:\n"""\n${contextText}\n"""`;
             
-            this.addMessage('User', displayMessage);
-            await this.fetchResponse(prompt, config.apiKey, config.model);
+            // Pesan dari user
+            const finalUserPrompt = message || "Tolong analisis teks di atas dan berikan saran perbaikan.";
+            
+            this.addMessage('User', finalUserPrompt);
+            await this.fetchResponse(finalUserPrompt, config.apiKey, config.model, systemPrompt);
             
         } catch (error: any) {
             ToastService.show("Error: " + error.message, true);
