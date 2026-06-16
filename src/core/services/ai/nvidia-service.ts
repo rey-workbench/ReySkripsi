@@ -2,19 +2,26 @@ import { IAiService } from './iai-service';
 
 export class NvidiaService implements IAiService {
     public async generateContent(prompt: string, apiKey: string, model: string, systemInstruction?: string): Promise<string> {
-        const invokeUrl = "https://integrate.api.nvidia.com/v1/chat/completions";
-        
+        // Menggunakan Vercel rewrite (dikonfigurasi di vercel.json) untuk mengatasi CORS
+        const invokeUrl = "/api/nvidia";
+
         try {
             const messages: any[] = [];
-            
+
             if (systemInstruction) {
                 messages.push({ role: "system", content: systemInstruction });
             }
-            
+
             messages.push({ role: "user", content: prompt });
 
+            // Pastikan format model sesuai dengan yang dibutuhkan NVIDIA API
+            let fullModelId = model;
+            if (model === 'minimax-m3') {
+                fullModelId = 'minimaxai/minimax-m3';
+            }
+
             const payload = {
-                model: model, // e.g. "minimaxai/minimax-m3"
+                model: fullModelId,
                 messages: messages,
                 max_tokens: 8192,
                 temperature: 1.00,
