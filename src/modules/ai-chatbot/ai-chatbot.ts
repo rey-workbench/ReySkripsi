@@ -39,8 +39,8 @@ export class AiChatbotModule implements IModule {
                 </div>
                 ${Textarea.render({
                     id: 'ai-chat-input',
-                    label: 'Pesan Anda:',
-                    placeholder: 'Tanyakan sesuatu...',
+                    label: 'Pesan / Instruksi Anda:',
+                    placeholder: 'Tanyakan sesuatu atau berikan instruksi revisi...',
                     rows: 3
                 })}
                 <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
@@ -50,12 +50,6 @@ export class AiChatbotModule implements IModule {
                         variant: 'primary',
                         icon: 'ms-Icon--Send'
                     })}
-                    ${Button.render({
-                        id: 'ai-btn-ask-selected',
-                        text: 'Tanya tentang teks terpilih',
-                        variant: 'secondary',
-                        icon: 'ms-Icon--TextDocument'
-                    })}
                 </div>
             </div>
         `;
@@ -63,10 +57,7 @@ export class AiChatbotModule implements IModule {
 
     public onInit(): void {
         const btnSend = document.getElementById("ai-btn-send");
-        const btnAskSelected = document.getElementById("ai-btn-ask-selected");
-        
         if (btnSend) btnSend.addEventListener("click", () => this.handleSend());
-        if (btnAskSelected) btnAskSelected.addEventListener("click", () => this.handleAskSelected());
     }
 
     private addMessage(sender: 'User' | 'AI', text: string) {
@@ -77,22 +68,109 @@ export class AiChatbotModule implements IModule {
         msgDiv.style.padding = "8px";
         msgDiv.style.borderRadius = "4px";
         msgDiv.style.fontSize = "14px";
+        msgDiv.style.display = "flex";
+        msgDiv.style.flexDirection = "column";
+        msgDiv.style.gap = "4px";
         
         if (sender === 'User') {
             msgDiv.style.backgroundColor = "#e0f2fe";
             msgDiv.style.color = "#0369a1";
             msgDiv.style.alignSelf = "flex-end";
             msgDiv.style.maxWidth = "85%";
+            msgDiv.innerHTML = `<strong>${sender}:</strong> <div>${this.formatMarkdown(text)}</div>`;
         } else {
             msgDiv.style.backgroundColor = "#dcfce7";
             msgDiv.style.color = "#15803d";
             msgDiv.style.alignSelf = "flex-start";
             msgDiv.style.maxWidth = "85%";
+            msgDiv.innerHTML = `<strong>${sender}:</strong> <div>${this.formatMarkdown(text)}</div>`;
+            
+            // Add an action button to insert this AI response into the Word document
+            const actionDiv = document.createElement("div");
+            actionDiv.style.marginTop = "8px";
+            actionDiv.style.textAlign = "right";
+            
+            const insertBtn = document.createElement("button");
+            insertBtn.innerText = "Sisipkan / Ganti di Dokumen";
+            insertBtn.style.fontSize = "11px";
+            insertBtn.style.padding = "4px 8px";
+            insertBtn.style.cursor = "pointer";
+            insertBtn.style.border = "1px solid #16a34a";
+            insertBtn.style.backgroundColor = "transparent";
+            insertBtn.style.color = "#16a34a";
+            insertBtn.style.borderRadius = "4px";
+            
+            insertBtn.addEventListener("click", () => this.insertToDocument(text));
+            insertBtn.addEventListener("mouseover", () => {
+                insertBtn.style.backgroundColor = "#16a34a";
+                insertBtn.style.color = "#ffffff";
+            });
+            insertBtn.addEventListener("mouseout", () => {
+                insertBtn.style.backgroundColor = "transparent";
+                insertBtn.style.color = "#16a34a";
+            });
+
+            actionDiv.appendChild(insertBtn);
+            msgDiv.appendChild(actionDiv);
         }
         
-        msgDiv.innerHTML = `<strong>${sender}:</strong> <br/>${text.replace(/\n/g, '<br/>')}`;
         historyContainer.appendChild(msgDiv);
         historyContainer.scrollTop = historyContainer.scrollHeight;
+    }
+
+    private formatMarkdown(text: string): string {
+        if (!text) return "";
+
+        let html = text;
+        
+        // Escape HTML
+        html = html.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        
+        // Code blocks
+        html = html.replace(/```([\s\S]*?)```/g, '<pre style="background:#f3f2f1; color:#242424; padding:8px; border-radius:4px; overflow-x:auto; margin:4px 0;"><code>$1</code></pre>');
+        
+        // Inline code
+        html = html.replace(/`([^`]+)`/g, '<code style="background:#f3f2f1; color:#242424; padding:2px 4px; border-radius:2px;">$1</code>');
+        
+        // Bold
+        html = html.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+        
+        // Italic (using _text_)
+        html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+        
+        // Headings
+        html = html.replace(/^### (.*$)/gim, '<h3 style="margin:12px 0 4px 0; font-size:14px; font-weight:bold; color:#111827;">$1</h3>');
+        html = html.replace(/^## (.*$)/gim, '<h2 style="margin:14px 0 4px 0; font-size:15px; font-weight:bold; color:#111827;">$1</h2>');
+        html = html.replace(/^# (.*$)/gim, '<h1 style="margin:16px 0 4px 0; font-size:16px; font-weight:bold; color:#111827;">$1</h1>');
+        
+        // Lists (unordered)
+        html = html.replace(/^\s*[\*\-] (.*$)/gim, '<li style="margin-left:20px; margin-bottom:2px;">$1</li>');
+        
+        // Line breaks
+        html = html.replace(/\n/g, '<br/>');
+        
+        // Clean up redundant breaks after block elements
+        html = html.replace(/<\/h1><br\/>/g, '</h1>');
+        html = html.replace(/<\/h2><br\/>/g, '</h2>');
+        html = html.replace(/<\/h3><br\/>/g, '</h3>');
+        html = html.replace(/<\/li><br\/>/g, '</li>');
+        html = html.replace(/<\/pre><br\/>/g, '</pre>');
+
+        return html;
+    }
+
+    private async insertToDocument(text: string) {
+        try {
+            await Word.run(async (context) => {
+                const range = context.document.getSelection();
+                // Replace selected text or insert at cursor
+                range.insertText(text, Word.InsertLocation.replace);
+                await context.sync();
+            });
+            ToastService.show("Teks berhasil disisipkan ke dokumen.", false);
+        } catch (error: any) {
+            ToastService.show("Gagal menyisipkan teks: " + error.message, true);
+        }
     }
 
     private getApiKeyAndModel(): { apiKey: string, model: string } | null {
@@ -118,45 +196,49 @@ export class AiChatbotModule implements IModule {
         if (!inputEl) return;
         
         const message = inputEl.value.trim();
-        if (!message) return;
+        const userPrompt = message || "Tolong analisis, berikan feedback, dan revisi (jika diperlukan) tulisan ini.";
         
-        inputEl.value = "";
-        this.addMessage('User', message);
+        if (inputEl) inputEl.value = "";
         
-        await this.fetchResponse(message, config.apiKey, config.model);
-    }
-
-    private async handleAskSelected() {
-        const config = this.getApiKeyAndModel();
-        if (!config) return;
-
         try {
-            ToastService.showProgress("Mengambil teks terpilih...", 0);
-            let selectedText = "";
+            ToastService.showProgress("Membaca konteks dokumen...", 0);
+            let contextText = "";
+            let contextType = "Dokumen Keseluruhan";
             
             await Word.run(async (context) => {
-                const range = context.document.getSelection();
-                range.load("text");
+                const selection = context.document.getSelection();
+                selection.load("text");
                 await context.sync();
-                selectedText = range.text;
+                
+                if (selection.text && selection.text.trim()) {
+                    contextText = selection.text;
+                    contextType = "Teks Terpilih";
+                } else {
+                    const body = context.document.body;
+                    body.load("text");
+                    await context.sync();
+                    contextText = body.text;
+                    contextType = "Dokumen Keseluruhan";
+                }
             });
             
             ToastService.hide();
             
-            if (!selectedText.trim()) {
-                ToastService.show("Pilih beberapa teks terlebih dahulu di dokumen Anda.", true);
-                return;
+            if (!contextText.trim()) {
+                if (message) {
+                    this.addMessage('User', message);
+                    await this.fetchResponse(message, config.apiKey, config.model);
+                    return;
+                } else {
+                    ToastService.show("Dokumen kosong dan tidak ada pesan yang diketik.", true);
+                    return;
+                }
             }
 
-            const inputEl = document.getElementById("ai-chat-input") as HTMLTextAreaElement;
-            const additionalPrompt = inputEl ? inputEl.value.trim() : "";
-            const prompt = additionalPrompt 
-                ? `${additionalPrompt}\n\nTeks:\n"${selectedText}"` 
-                : `Tolong analisis atau jelaskan teks berikut:\n\n"${selectedText}"`;
+            const prompt = `${userPrompt}\n\nKonteks (${contextType}):\n"${contextText}"`;
+            const displayMessage = message ? message : `[Meminta AI memproses ${contextType.toLowerCase()}]`;
             
-            if (inputEl) inputEl.value = "";
-            
-            this.addMessage('User', prompt);
+            this.addMessage('User', displayMessage);
             await this.fetchResponse(prompt, config.apiKey, config.model);
             
         } catch (error: any) {
@@ -164,7 +246,7 @@ export class AiChatbotModule implements IModule {
         }
     }
 
-    private async fetchResponse(prompt: string, apiKey: string, model: string) {
+    private async fetchResponse(prompt: string, apiKey: string, model: string, systemInstruction?: string) {
         try {
             ToastService.showProgress("Menunggu respons AI...", 0);
             
@@ -181,7 +263,7 @@ export class AiChatbotModule implements IModule {
                 historyContainer.scrollTop = historyContainer.scrollHeight;
             }
 
-            const response = await GeminiService.generateContent(prompt, apiKey, model);
+            const response = await GeminiService.generateContent(prompt, apiKey, model, systemInstruction);
             
             ToastService.hide();
             
