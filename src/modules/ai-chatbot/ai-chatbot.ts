@@ -27,10 +27,10 @@ export class AiChatbotModule implements IModule {
                     id: 'ai-model-select',
                     label: 'Pilih Model Gemini:',
                     options: [
-                        { value: 'gemini-3-flash-preview', label: 'gemini-3-flash-preview' },
-                        { value: 'gemini-3.5-flash', label: 'gemini-3.5-flash' },
-                        { value: 'gemini-3.1-pro-preview', label: 'gemini-3.1-pro-preview' },
-                        { value: 'gemini-3.1-flash-lite', label: 'gemini-3.1-flash-lite' }
+                        { value: 'gemini-3-flash-preview', label: 'Gemini 3 Flash' },
+                        { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
+                        { value: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 (Pro)' },
+                        { value: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 (Lite)' }
                     ]
                 })}
 
