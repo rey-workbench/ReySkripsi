@@ -453,6 +453,7 @@ export class AiChatbotModule implements IModule {
             if (loadingEl) {
                 loadingEl.remove();
             }
+            ToastService.hide();
             this.addMessage('AI', aiResponse);
         } catch (error: any) {
             ToastService.hide();
