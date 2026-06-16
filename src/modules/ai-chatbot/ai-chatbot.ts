@@ -10,7 +10,7 @@ export class AiChatbotModule implements IModule {
     
     public get htmlContent(): string {
         return `
-            <div class="module-header" style="display: flex; align-items: center;">
+            <div class="module-header" style="display: flex; align-items: center; margin-bottom: 24px;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; flex-shrink: 0;">
                     <defs>
                         <linearGradient id="ai-star-grad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -27,10 +27,12 @@ export class AiChatbotModule implements IModule {
             </div>
             
             <div class="module-content" style="display: flex; flex-direction: column; height: calc(100vh - 120px);">
-                <div style="margin-bottom: 16px;">
-                    <label class="ms-fontWeight-semibold" style="display: block; margin-bottom: 4px; font-size: 13px; color: #111827;">Kunci API (API Key)</label>
-                    <input type="password" id="ai-api-key" class="ms-TextField-field" placeholder="Masukkan Gemini API Key..." style="width: 100%; box-sizing: border-box; padding: 6px 12px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 13px; margin-bottom: 8px;" />
-                    <input type="password" id="nvidia-api-key" class="ms-TextField-field" placeholder="Masukkan NVIDIA API Key..." style="width: 100%; box-sizing: border-box; padding: 6px 12px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 13px;" />
+                <div style="margin-bottom: 24px;">
+                    <label class="ms-fontWeight-semibold" style="display: block; margin-bottom: 12px; font-size: 14px; color: #111827;">Pengaturan Kunci API (API Key)</label>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <input type="password" id="ai-api-key" class="ms-TextField-field" placeholder="Masukkan Gemini API Key..." style="width: 100%; box-sizing: border-box; padding: 10px 14px; border-radius: 6px; border: 1px solid #d1d5db; font-size: 13px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0078D4'" onblur="this.style.borderColor='#d1d5db'" />
+                        <input type="password" id="nvidia-api-key" class="ms-TextField-field" placeholder="Masukkan NVIDIA API Key..." style="width: 100%; box-sizing: border-box; padding: 10px 14px; border-radius: 6px; border: 1px solid #d1d5db; font-size: 13px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0078D4'" onblur="this.style.borderColor='#d1d5db'" />
+                    </div>
                 </div>
 
                 <div id="ai-chat-history" style="flex: 1; overflow-y: auto; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
@@ -39,75 +41,85 @@ export class AiChatbotModule implements IModule {
                     </div>
                 </div>
                 
-                <div style="position: relative; display: flex; align-items: center; background: #f3f2f1; border-radius: 24px; padding: 6px 16px; border: 1px solid #e2e8f0;">
-                    <div id="ai-plus-btn" style="display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 4px; margin-right: 8px; border-radius: 50%; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
-                        <i class="ms-Icon ms-Icon--Add" style="font-size: 16px; color: #6b7280;"></i>
+                <div style="position: relative; display: flex; flex-direction: column; background: #f3f2f1; border-radius: 16px; padding: 8px 12px; border: 1px solid #e2e8f0; gap: 8px;">
+                    
+                    <!-- Row 1: Input and Plus button -->
+                    <div style="display: flex; align-items: center; width: 100%;">
+                        <div id="ai-plus-btn" style="display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 4px; margin-right: 8px; border-radius: 50%; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
+                            <i class="ms-Icon ms-Icon--Add" style="font-size: 16px; color: #6b7280;"></i>
+                        </div>
+                        
+                        <!-- Popup Menu -->
+                        <div id="ai-plus-menu" style="display: none; position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 8px; min-width: 220px; z-index: 100;">
+                            <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
+                                <i class="ms-Icon ms-Icon--Document" style="font-size: 16px; color: #6b7280;"></i>
+                                Gunakan Seluruh Dokumen
+                            </div>
+                            <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
+                                <i class="ms-Icon ms-Icon--TextDocument" style="font-size: 16px; color: #6b7280;"></i>
+                                Fokus Teks Terpilih
+                            </div>
+                            <div style="height: 1px; background: #e2e8f0; margin: 6px 0;"></div>
+                            <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
+                                <i class="ms-Icon ms-Icon--Search" style="font-size: 16px; color: #6b7280;"></i>
+                                Pencarian Web (Search Grounding)
+                            </div>
+                            <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
+                                <i class="ms-Icon ms-Icon--Lightbulb" style="font-size: 16px; color: #6b7280;"></i>
+                                Mode Berpikir (Thinking)
+                            </div>
+                            <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
+                                <i class="ms-Icon ms-Icon--Code" style="font-size: 16px; color: #6b7280;"></i>
+                                Eksekusi Kode (Code Execution)
+                            </div>
+                        </div>
+                        
+                        <!-- Skill Badge -->
+                        <div id="ai-skill-badge" style="display: none; align-items: center; background: #e0f2fe; color: #0369a1; font-size: 12px; padding: 4px 8px; border-radius: 12px; margin-right: 8px; font-weight: 600; gap: 4px;">
+                            <span id="ai-skill-text"></span>
+                            <i class="ms-Icon ms-Icon--Cancel" id="ai-skill-clear" style="cursor: pointer; font-size: 10px; margin-left: 4px;" title="Hapus"></i>
+                        </div>
+                        <!-- Hidden input to store skill context -->
+                        <input type="hidden" id="ai-skill-value" value="" />
+                        
+                        <input type="text" id="ai-chat-input" placeholder="Minta AI..." style="flex: 1; background: transparent; border: none; outline: none; font-size: 14px; padding: 4px 0; color: #111827; min-width: 0;" />
                     </div>
                     
-                    <!-- Popup Menu -->
-                    <div id="ai-plus-menu" style="display: none; position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 8px; min-width: 220px; z-index: 100;">
-                        <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
-                            <i class="ms-Icon ms-Icon--Document" style="font-size: 16px; color: #6b7280;"></i>
-                            Gunakan Seluruh Dokumen
+                    <!-- Row 2: Controls -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding-left: 4px;">
+                        
+                        <!-- Custom Dropdown Trigger -->
+                        <div id="ai-model-trigger" style="display: flex; align-items: center; cursor: pointer; padding: 4px 8px; border-radius: 16px; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
+                            <span id="ai-model-display" style="font-size: 12px; color: #6b7280; font-weight: 600; margin-right: 4px;">Flash 3.5</span>
+                            <i class="ms-Icon ms-Icon--ChevronDown" style="font-size: 10px; color: #6b7280;"></i>
                         </div>
-                        <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
-                            <i class="ms-Icon ms-Icon--TextDocument" style="font-size: 16px; color: #6b7280;"></i>
-                            Fokus Teks Terpilih
+                        
+                        <!-- Custom Dropdown Menu -->
+                        <div id="ai-model-menu" style="display: none; position: absolute; bottom: 100%; left: 12px; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 4px 0; min-width: 160px; z-index: 100;">
+                            <div class="ai-model-item" data-value="gemini-3.5-flash" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Flash 3.5</div>
+                            <div class="ai-model-item" data-value="gemini-3-flash-preview" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Flash 3</div>
+                            <div class="ai-model-item" data-value="gemini-2.5-pro" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Pro 2.5</div>
+                            <div class="ai-model-item" data-value="gemini-2.5-flash" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Flash 2.5</div>
+                            <div style="height: 1px; background: #e2e8f0; margin: 4px 0;"></div>
+                            <div class="ai-model-item" data-value="minimax-m3" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Minimax-M3 (NVIDIA)</div>
                         </div>
-                        <div style="height: 1px; background: #e2e8f0; margin: 6px 0;"></div>
-                        <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
-                            <i class="ms-Icon ms-Icon--Search" style="font-size: 16px; color: #6b7280;"></i>
-                            Pencarian Web (Search Grounding)
-                        </div>
-                        <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
-                            <i class="ms-Icon ms-Icon--Lightbulb" style="font-size: 16px; color: #6b7280;"></i>
-                            Mode Berpikir (Thinking)
-                        </div>
-                        <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
-                            <i class="ms-Icon ms-Icon--Code" style="font-size: 16px; color: #6b7280;"></i>
-                            Eksekusi Kode (Code Execution)
-                        </div>
+                        <!-- Hidden input to store selected model -->
+                        <input type="hidden" id="ai-model-select" value="gemini-3.5-flash" />
+    
+                        <button id="ai-btn-send" style="background: #0078D4; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; color: white; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,120,212,0.2);" onmouseover="this.style.background='#005a9e'" onmouseout="this.style.background='#0078D4'">
+                            <i class="ms-Icon ms-Icon--Send" style="font-size: 14px; margin-left: 2px;"></i>
+                        </button>
                     </div>
-                    
-                    <!-- Skill Badge -->
-                    <div id="ai-skill-badge" style="display: none; align-items: center; background: #e0f2fe; color: #0369a1; font-size: 12px; padding: 4px 8px; border-radius: 12px; margin-right: 8px; font-weight: 600; gap: 4px;">
-                        <span id="ai-skill-text"></span>
-                        <i class="ms-Icon ms-Icon--Cancel" id="ai-skill-clear" style="cursor: pointer; font-size: 10px; margin-left: 4px;" title="Hapus"></i>
-                    </div>
-                    <!-- Hidden input to store skill context -->
-                    <input type="hidden" id="ai-skill-value" value="" />
-                    
-                    <input type="text" id="ai-chat-input" placeholder="Minta Gemini..." style="flex: 1; background: transparent; border: none; outline: none; font-size: 14px; padding: 8px 0; color: #111827;" />
-                    
-                    <!-- Custom Dropdown Trigger -->
-                    <div id="ai-model-trigger" style="display: flex; align-items: center; cursor: pointer; padding: 4px 8px; border-radius: 16px; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
-                        <span id="ai-model-display" style="font-size: 13px; color: #374151; font-weight: 600; margin-right: 4px;">Flash 3.5</span>
-                        <i class="ms-Icon ms-Icon--ChevronDown" style="font-size: 10px; color: #374151;"></i>
-                    </div>
-                    
-                    <!-- Custom Dropdown Menu -->
-                    <div id="ai-model-menu" style="display: none; position: absolute; bottom: 100%; right: 40px; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 4px 0; min-width: 120px; z-index: 100;">
-                        <div class="ai-model-item" data-value="gemini-3.5-flash" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Flash 3.5</div>
-                        <div class="ai-model-item" data-value="gemini-3-flash-preview" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Flash 3</div>
-                        <div class="ai-model-item" data-value="gemini-2.5-pro" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Pro 2.5</div>
-                        <div class="ai-model-item" data-value="gemini-2.5-flash" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Flash 2.5</div>
-                        <div style="height: 1px; background: #e2e8f0; margin: 4px 0;"></div>
-                        <div class="ai-model-item" data-value="minimax-m3" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Minimax-M3 (NVIDIA)</div>
-                    </div>
-                    <!-- Hidden input to store selected model -->
-                    <input type="hidden" id="ai-model-select" value="gemini-3.5-flash" />
-
-                    <button id="ai-btn-send" style="background: #107c41; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; color: white; transition: background 0.2s; margin-left: 8px;" onmouseover="this.style.background='#0c5e31'" onmouseout="this.style.background='#107c41'">
-                        <i class="ms-Icon ms-Icon--Send" style="font-size: 14px; margin-left: 2px;"></i>
-                    </button>
                 </div>
             </div>
         `;
     }
 
+    private isGenerating = false;
+
     public onInit(): void {
         const btnSend = document.getElementById("ai-btn-send");
-        const inputField = document.getElementById("ai-chat-input");
+        const inputField = document.getElementById("ai-chat-input") as HTMLInputElement;
         const plusBtn = document.getElementById("ai-plus-btn");
         const plusMenu = document.getElementById("ai-plus-menu");
         const skillBadge = document.getElementById("ai-skill-badge");
@@ -192,6 +204,28 @@ export class AiChatbotModule implements IModule {
             if (plusMenu) plusMenu.style.display = "none";
             if (modelMenu) modelMenu.style.display = "none";
         });
+    }
+
+    private toggleLoadingState(isLoading: boolean) {
+        this.isGenerating = isLoading;
+        const btnSend = document.getElementById("ai-btn-send");
+        const inputField = document.getElementById("ai-chat-input") as HTMLInputElement;
+        
+        if (btnSend) {
+            if (isLoading) {
+                btnSend.style.opacity = "0.5";
+                btnSend.style.cursor = "not-allowed";
+                btnSend.style.pointerEvents = "none";
+            } else {
+                btnSend.style.opacity = "1";
+                btnSend.style.cursor = "pointer";
+                btnSend.style.pointerEvents = "auto";
+            }
+        }
+        
+        if (inputField) {
+            inputField.disabled = isLoading;
+        }
     }
 
     private addMessage(sender: 'User' | 'AI', text: string) {
@@ -391,6 +425,8 @@ export class AiChatbotModule implements IModule {
     }
 
     private async handleSend() {
+        if (this.isGenerating) return;
+
         const config = this.getApiKeyAndModel();
         if (!config) return;
 
@@ -407,6 +443,7 @@ export class AiChatbotModule implements IModule {
         if (inputEl) inputEl.value = "";
         
         try {
+            this.toggleLoadingState(true);
             ToastService.showProgress("Membaca konteks dokumen...", 0);
             
             // Tampilkan chat pengguna (hanya rawMessage yang ditampilkan ke UI agar bersih, atau tampilkan dengan tag skill)
@@ -455,6 +492,7 @@ export class AiChatbotModule implements IModule {
                     return;
                 } else {
                     ToastService.show("Dokumen kosong dan tidak ada pesan yang diketik.", true);
+                    this.toggleLoadingState(false);
                     return;
                 }
             }
@@ -466,6 +504,7 @@ export class AiChatbotModule implements IModule {
             
         } catch (error: any) {
             ToastService.show("Error: " + error.message, true);
+            this.toggleLoadingState(false);
         }
     }
 
@@ -494,11 +533,13 @@ export class AiChatbotModule implements IModule {
             }
             ToastService.hide();
             this.addMessage('AI', aiResponse);
+            this.toggleLoadingState(false);
         } catch (error: any) {
             ToastService.hide();
             const loadingEl = document.getElementById(loadingId);
             if (loadingEl) loadingEl.remove();
             this.addMessage('AI', `Error: ${error.message}`);
+            this.toggleLoadingState(false);
         }
     }
 }
