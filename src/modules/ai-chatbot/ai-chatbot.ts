@@ -225,15 +225,23 @@ export class AiChatbotModule implements IModule {
         try {
             await Word.run(async (context) => {
                 const cleanSearchText = searchText.replace(/^["']|["']$/g, '').trim();
-                // Take up to 50 characters to search if it's too long, to ensure match even with formatting differences
-                const searchQuery = cleanSearchText.length > 50 ? cleanSearchText.substring(0, 50) : cleanSearchText;
+                // Gunakan teks yang lebih panjang (hingga 100 karakter) agar lebih spesifik dan tidak nyasar ke Daftar Isi
+                const searchQuery = cleanSearchText.length > 100 ? cleanSearchText.substring(0, 100) : cleanSearchText;
                 
                 const results = context.document.body.search(searchQuery, { matchCase: false });
                 context.load(results);
                 await context.sync();
                 
                 if (results.items.length > 0) {
-                    results.items[0].select();
+                    // Jika ada lebih dari satu hasil, kita coba cari yang posisinya bukan di awal-awal dokumen (biasanya Daftar Isi)
+                    // Namun API Word standar langsung me-return collection. Kita ambil hasil terakhir jika ada banyak (asumsi Daftar Isi di awal).
+                    let targetItem = results.items[0];
+                    if (results.items.length > 1) {
+                        // Ambil hasil terakhir yang lebih mungkin merupakan isi dokumen asli, bukan Daftar Isi
+                        targetItem = results.items[results.items.length - 1];
+                    }
+                    
+                    targetItem.select();
                     await context.sync();
                     ToastService.show("Teks referensi ditemukan.", false);
                 } else {
@@ -540,7 +548,15 @@ export class AiChatbotModule implements IModule {
             }
 
             // Gunakan konteks dokumen sebagai System Prompt (System Instruction)
-            const systemPrompt = `Anda adalah asisten AI cerdas untuk penulisan Microsoft Word. Berikut adalah isi ${contextType.toLowerCase()} yang sedang dikerjakan pengguna. Jadikan ini sebagai konteks dasar Anda untuk menjawab setiap permintaan pengguna. Jangan berikan ringkasan kecuali diminta. Jika Anda mengutip atau merujuk pada bagian tertentu dari dokumen, WAJIB gunakan format sitasi [REF:Teks Pencarian|Teks Tampilan]. Contoh: "seperti yang dijelaskan pada [REF:Latar Belakang|hal 11]". Teks Pencarian harus berupa kutipan kalimat asli yang akurat dari dokumen agar sistem bisa menemukannya.\n\nKonteks:\n"""\n${contextText}\n"""`;
+            const systemPrompt = `Anda adalah asisten AI cerdas untuk penulisan Microsoft Word. Berikut adalah isi ${contextType.toLowerCase()} yang sedang dikerjakan pengguna. Jadikan ini sebagai konteks dasar Anda untuk menjawab setiap permintaan pengguna.
+            
+PENTING TENTANG REFERENSI / SITASI:
+Jika Anda mengutip, merujuk, atau menemukan jawaban dari bagian tertentu dalam dokumen, Anda WAJIB menyertakan sitasi menggunakan format: [REF:Teks Kalimat Kutipan|Teks Tampilan].
+- "Teks Kalimat Kutipan" HARUS berupa kalimat utuh dan spesifik (minimal 5-10 kata) yang BENAR-BENAR ADA di dalam teks dokumen. JANGAN gunakan kata pendek atau judul bab (seperti "Rule-Based Adaptation"), karena akan membuat sistem salah melompat ke Daftar Isi. Gunakan kalimat panjang yang unik.
+- "Teks Tampilan" adalah teks yang akan dibaca pengguna (misal: "Halaman 20" atau "Bab 2").
+Contoh Benar: "Mekanisme ini penting karena [REF:OOPedia menggunakan 12 rule based adaptation untuk menyesuaikan materi|Halaman 20]."
+
+Konteks Dokumen:\n"""\n${contextText}\n"""`;
             
             await this.fetchResponse(userPrompt, config.apiKey, config.model, systemPrompt);
             
