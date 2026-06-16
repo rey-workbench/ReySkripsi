@@ -270,7 +270,7 @@ export class AiChatbotModule implements IModule {
     private formatMarkdown(text: string): string {
         if (!text) return "";
 
-        let html = text;
+        let html = text.replace(/\r\n/g, '\n');
         
         // Escape HTML
         html = html.replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -281,19 +281,57 @@ export class AiChatbotModule implements IModule {
         // Inline code
         html = html.replace(/`([^`]+)`/g, '<code style="background:#f3f2f1; color:#242424; padding:2px 4px; border-radius:2px;">$1</code>');
         
+        // Horizontal Rules
+        html = html.replace(/^\s*(?:---+|\*\*\*+|___+)\s*$/gm, '<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;" />');
+        
+        // Tables
+        html = html.replace(/(?:^\s*\|.*\|\s*$\n?)+/gm, (match) => {
+            const rows = match.trim().split('\n');
+            let tableHtml = '<div style="overflow-x:auto; margin:12px 0;"><table style="width:100%; border-collapse:collapse; font-size:12px;">';
+            rows.forEach((row, i) => {
+                // Skip the markdown separator row (e.g. |---|---|)
+                if (row.indexOf('---') !== -1 && row.indexOf('|') !== -1) return;
+                
+                const cells = row.split('|');
+                if (cells[0].trim() === '') cells.shift();
+                if (cells.length > 0 && cells[cells.length - 1].trim() === '') cells.pop();
+                
+                tableHtml += '<tr>';
+                cells.forEach(cell => {
+                    // Check if there's markdown bold inside table cells
+                    let cellContent = cell.trim();
+                    cellContent = cellContent.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+                    cellContent = cellContent.replace(/_([^_]+)_/g, '<em>$1</em>');
+                    
+                    if (i === 0) {
+                        tableHtml += `<th style="border:1px solid #e2e8f0; padding:6px 8px; background:#f8f9fa; text-align:left;">${cellContent}</th>`;
+                    } else {
+                        tableHtml += `<td style="border:1px solid #e2e8f0; padding:6px 8px;">${cellContent}</td>`;
+                    }
+                });
+                tableHtml += '</tr>';
+            });
+            tableHtml += '</table></div>';
+            return tableHtml;
+        });
+
         // Bold
         html = html.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
         
-        // Italic (using _text_)
+        // Italic (using _text_ or *text*)
         html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+        html = html.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
         
         // Headings
-        html = html.replace(/^### (.*$)/gim, '<h3 style="margin:12px 0 4px 0; font-size:14px; font-weight:bold; color:#111827;">$1</h3>');
-        html = html.replace(/^## (.*$)/gim, '<h2 style="margin:14px 0 4px 0; font-size:15px; font-weight:bold; color:#111827;">$1</h2>');
-        html = html.replace(/^# (.*$)/gim, '<h1 style="margin:16px 0 4px 0; font-size:16px; font-weight:bold; color:#111827;">$1</h1>');
+        html = html.replace(/^### (.*$)/gm, '<h3 style="margin:12px 0 4px 0; font-size:14px; font-weight:bold; color:#111827;">$1</h3>');
+        html = html.replace(/^## (.*$)/gm, '<h2 style="margin:14px 0 4px 0; font-size:15px; font-weight:bold; color:#111827;">$1</h2>');
+        html = html.replace(/^# (.*$)/gm, '<h1 style="margin:16px 0 4px 0; font-size:16px; font-weight:bold; color:#111827;">$1</h1>');
         
         // Lists (unordered)
-        html = html.replace(/^\s*[\*\-] (.*$)/gim, '<li style="margin-left:20px; margin-bottom:2px;">$1</li>');
+        html = html.replace(/^\s*[\*\-] (.*$)/gm, '<li style="margin-left:20px; margin-bottom:4px; list-style-type:disc;">$1</li>');
+        
+        // Lists (ordered)
+        html = html.replace(/^\s*\d+\.\s+(.*$)/gm, '<li style="margin-left:20px; margin-bottom:4px; list-style-type:decimal;">$1</li>');
         
         // Line breaks
         html = html.replace(/\n/g, '<br/>');
@@ -304,6 +342,8 @@ export class AiChatbotModule implements IModule {
         html = html.replace(/<\/h3><br\/>/g, '</h3>');
         html = html.replace(/<\/li><br\/>/g, '</li>');
         html = html.replace(/<\/pre><br\/>/g, '</pre>');
+        html = html.replace(/<\/div><br\/>/g, '</div>');
+        html = html.replace(/<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;" \/><br\/>/g, '<hr style="border:0; border-top:1px solid #e2e8f0; margin:16px 0;" />');
 
         return html;
     }
