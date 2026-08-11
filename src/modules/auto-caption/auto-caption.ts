@@ -3,6 +3,7 @@ import { CaptionService, ICaptionStyleOptions } from '../../core/services/word/c
 import { ToastService } from '../../core/services/ui/toast-service';
 import { ModalService } from '../../core/services/ui/modal-service';
 import { StorageService } from '../../core/services/storage/storage-service';
+import { AiModel, DEFAULT_AI_MODEL } from '../../core/services/ai/ai-models';
 import { IModule } from '../../core/interfaces';
 import { Button } from '../../core/components/button';
 import { Dropdown } from '../../core/components/dropdown';
@@ -127,7 +128,7 @@ export class AutoCaptionModule implements IModule {
     let title = titleInput?.value.trim() || "";
     const options = this.getStyleOptions();
     const apiKey = await StorageService.getItem("gemini_api_key");
-    const model = "gemini-2.5-flash-lite";
+    const model: AiModel = DEFAULT_AI_MODEL;
 
     try {
       ToastService.showProgress("Membuat caption...", 30);
@@ -159,7 +160,7 @@ export class AutoCaptionModule implements IModule {
 
     const options = this.getStyleOptions();
     const apiKey = await StorageService.getItem("gemini_api_key");
-    const model = "gemini-2.5-flash-lite";
+    const model: AiModel = DEFAULT_AI_MODEL;
 
     try {
       ToastService.showProgress("Memproses seluruh tabel dokumen...", 30);

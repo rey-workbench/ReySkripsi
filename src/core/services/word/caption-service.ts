@@ -1,5 +1,6 @@
 /// <reference types="office-js" />
 import { AiOrchestrator } from '../ai/ai-orchestrator';
+import { AiModel, DEFAULT_AI_MODEL } from '../ai/ai-models';
 
 export interface ICaptionStyleOptions {
   isBold?: boolean;
@@ -84,7 +85,11 @@ export class CaptionService {
   /**
    * Menghasilkan deskripsi caption ringkas (maksimal 4 kata) menggunakan AI berdasarkan data tabel.
    */
-  public static async generateAiCaptionTitle(tableDataText: string, apiKey: string, model: string = "gemini-3.5-flash"): Promise<string> {
+  public static async generateAiCaptionTitle(
+    tableDataText: string, 
+    apiKey: string, 
+    model: AiModel = DEFAULT_AI_MODEL
+  ): Promise<string> {
     if (!tableDataText || !tableDataText.trim()) {
       return "";
     }
@@ -112,7 +117,7 @@ export class CaptionService {
   public static async generateBatchAiCaptionTitles(
     tablesDataTextList: string[], 
     apiKey: string, 
-    model: string = "gemini-3.5-flash"
+    model: AiModel = DEFAULT_AI_MODEL
   ): Promise<string[]> {
     if (!tablesDataTextList || tablesDataTextList.length === 0) {
       return [];
@@ -126,7 +131,6 @@ export class CaptionService {
 
     try {
       const resultText = await AiOrchestrator.generateResponse(prompt, apiKey, model);
-      // Ekstrak JSON Array dari respons
       const jsonMatch = resultText.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         const parsedTitles: string[] = JSON.parse(jsonMatch[0]);
@@ -207,7 +211,7 @@ export class CaptionService {
    */
   public static async autoCaptionAllTables(
     options?: ICaptionStyleOptions,
-    aiConfig?: { apiKey: string, model: string }
+    aiConfig?: { apiKey: string, model: AiModel }
   ): Promise<number> {
     let processedCount = 0;
 
@@ -217,7 +221,6 @@ export class CaptionService {
       tables.load("items/values, items/range");
       await context.sync();
 
-      // Tahap 1: Jika AI Config aktif, kumpulkan seluruh data tabel dulu & panggil AI BATCH 1 KALI
       let aiTitlesBatch: string[] = [];
       if (aiConfig && aiConfig.apiKey) {
         const tablesTextList: string[] = [];
@@ -231,11 +234,13 @@ export class CaptionService {
           }
         }
         
-        // Single batch API call for all tables in the document
-        aiTitlesBatch = await CaptionService.generateBatchAiCaptionTitles(tablesTextList, aiConfig.apiKey, aiConfig.model);
+        aiTitlesBatch = await CaptionService.generateBatchAiCaptionTitles(
+          tablesTextList, 
+          aiConfig.apiKey, 
+          aiConfig.model || DEFAULT_AI_MODEL
+        );
       }
 
-      // Tahap 2: Sisipkan Caption pada masing-masing tabel
       for (let i = 0; i < tables.items.length; i++) {
         const table = tables.items[i];
         
@@ -271,7 +276,6 @@ export class CaptionService {
           endOfLabel.insertText("1", Word.InsertLocation.after);
         }
 
-        // Sisipkan deskripsi AI yang didapatkan dari batch result
         const aiTitle = aiTitlesBatch[i];
         if (aiTitle) {
           const afterSeqRange = insertedParagraph.getRange("End");
