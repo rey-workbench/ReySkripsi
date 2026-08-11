@@ -244,7 +244,7 @@ export class CaptionService {
       await context.sync();
 
       const currentChapter = this.extractChapterNumber(documentUpToCursor.text);
-      const labelPrefix = `${label} ${currentChapter}.`;
+      const labelPrefix = `${label} ${currentChapter}. `;
 
       const targetFontName = "Times New Roman";
       const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
@@ -331,7 +331,7 @@ export class CaptionService {
         await context.sync();
 
         const chapter = this.extractChapterNumber(docUpToTable.text);
-        const labelPrefix = `Tabel ${chapter}.`;
+        const labelPrefix = `Tabel ${chapter}. `;
 
         const targetFontName = "Times New Roman";
         const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
