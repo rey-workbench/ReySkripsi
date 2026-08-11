@@ -39,7 +39,7 @@ export class CaptionService {
   }
 
   /**
-   * Menyisipkan caption di atas/bawah seleksi kursor saat ini.
+   * Menyisipkan Caption dengan Field Asli Word (SEQ Field) sehingga mendukung "Update Field" & Daftar Tabel/Gambar otomatis.
    */
   public static async insertCaptionForSelection(label: 'Tabel' | 'Gambar', captionTitle: string): Promise<string> {
     let captionTextInserted = "";
@@ -48,7 +48,7 @@ export class CaptionService {
       const selection = context.document.getSelection();
       const body = context.document.body;
 
-      // Dapatkan seluruh teks sebelum kursor
+      // Ambil seluruh teks sebelum lokasi kursor untuk deteksi Bab
       const startRange = body.getRange("Start");
       const cursorRange = selection.getRange("Start");
       const documentUpToCursor = startRange.expandTo(cursorRange);
@@ -56,30 +56,41 @@ export class CaptionService {
       await context.sync();
 
       const currentChapter = this.extractChapterNumber(documentUpToCursor.text);
-
-      // Hitung urutan Tabel/Gambar dalam Bab tersebut sejauh ini
-      const chapterMatches = documentUpToCursor.text.match(new RegExp(`${label}\\s+${currentChapter}\\.\\d+`, "gi"));
-      const sequenceNumber = (chapterMatches ? chapterMatches.length : 0) + 1;
-
-      const formattedLabel = `${label} ${currentChapter}.${sequenceNumber}`;
-      captionTextInserted = captionTitle ? `${formattedLabel} ${captionTitle}` : formattedLabel;
+      const labelPrefix = `${label} ${currentChapter}. `;
 
       // Sisipkan paragraf caption baru
       const insertLocation = label === 'Tabel' ? Word.InsertLocation.before : Word.InsertLocation.after;
-      const insertedParagraph = selection.insertParagraph(captionTextInserted, insertLocation);
+      const insertedParagraph = selection.insertParagraph(labelPrefix, insertLocation);
       insertedParagraph.font.bold = true;
       insertedParagraph.font.name = "Times New Roman";
       insertedParagraph.font.size = 12;
       insertedParagraph.alignment = Word.Alignment.centered;
 
+      // Sisipkan Native Word Field (SEQ) untuk penomoran otomatis yang bisa di-Update Field
+      const seqFieldName = `${label}_Bab${currentChapter}`;
+      const endOfLabel = insertedParagraph.getRange("End");
+
+      if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
+        endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, seqFieldName, true);
+      } else {
+        endOfLabel.insertText("1", Word.InsertLocation.after);
+      }
+
+      // Jika ada Judul / Deskripsi Caption
+      if (captionTitle) {
+        const afterSeqRange = insertedParagraph.getRange("End");
+        afterSeqRange.insertText(` ${captionTitle}`, Word.InsertLocation.after);
+      }
+
       await context.sync();
+      captionTextInserted = `${label} ${currentChapter}.[SEQ ${seqFieldName}] ${captionTitle}`;
     });
 
     return captionTextInserted;
   }
 
   /**
-   * Auto caption untuk semua Tabel di dokumen berdasar Bab otomatis.
+   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field).
    */
   public static async autoCaptionAllTables(): Promise<number> {
     let processedCount = 0;
@@ -89,8 +100,6 @@ export class CaptionService {
       const tables = body.tables;
       tables.load("items");
       await context.sync();
-
-      const chapterTableCounters: { [chapter: number]: number } = {};
 
       for (let i = 0; i < tables.items.length; i++) {
         const table = tables.items[i];
@@ -102,20 +111,23 @@ export class CaptionService {
         await context.sync();
 
         const chapter = this.extractChapterNumber(docUpToTable.text);
-        if (!chapterTableCounters[chapter]) {
-          chapterTableCounters[chapter] = 1;
-        } else {
-          chapterTableCounters[chapter]++;
-        }
+        const labelPrefix = `Tabel ${chapter}. `;
 
-        const seq = chapterTableCounters[chapter];
-        const captionLabel = `Tabel ${chapter}.${seq}`;
-
-        const insertedParagraph = table.insertParagraph(captionLabel, Word.InsertLocation.before);
+        const insertedParagraph = table.insertParagraph(labelPrefix, Word.InsertLocation.before);
         insertedParagraph.font.bold = true;
         insertedParagraph.font.name = "Times New Roman";
         insertedParagraph.font.size = 12;
         insertedParagraph.alignment = Word.Alignment.centered;
+
+        const seqFieldName = `Tabel_Bab${chapter}`;
+        const endOfLabel = insertedParagraph.getRange("End");
+
+        if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
+          endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, seqFieldName, true);
+        } else {
+          endOfLabel.insertText("1", Word.InsertLocation.after);
+        }
+
         processedCount++;
       }
 
