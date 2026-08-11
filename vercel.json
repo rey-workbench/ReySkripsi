@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/api/nvidia",
       "destination": "https://integrate.api.nvidia.com/v1/chat/completions"
     }
