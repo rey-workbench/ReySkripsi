@@ -39,7 +39,7 @@ export class CaptionService {
   }
 
   /**
-   * Menyisipkan Caption dengan Field Asli Word (SEQ Field) sehingga mendukung "Update Field" & Daftar Tabel/Gambar otomatis.
+   * Menyisipkan Caption dengan Field Asli Word (SEQ Field) dan mempertahankan font bawaan dokumen / pilihan.
    */
   public static async insertCaptionForSelection(label: 'Tabel' | 'Gambar', captionTitle: string): Promise<string> {
     let captionTextInserted = "";
@@ -53,17 +53,26 @@ export class CaptionService {
       const cursorRange = selection.getRange("Start");
       const documentUpToCursor = startRange.expandTo(cursorRange);
       documentUpToCursor.load("text");
+      
+      // Ambil sampel font dari paragraf terdekat tempat kursor berada
+      const parentParagraph = selection.paragraphs.getFirst();
+      parentParagraph.load("font/name, font/size");
+
       await context.sync();
 
       const currentChapter = this.extractChapterNumber(documentUpToCursor.text);
       const labelPrefix = `${label} ${currentChapter}. `;
 
+      // Font yang digunakan: mengikuti font paragraf sekitar (atau fallback ke Times New Roman jika kosong)
+      const targetFontName = parentParagraph.font.name || "Times New Roman";
+      const targetFontSize = parentParagraph.font.size || 12;
+
       // Sisipkan paragraf caption baru
       const insertLocation = label === 'Tabel' ? Word.InsertLocation.before : Word.InsertLocation.after;
       const insertedParagraph = selection.insertParagraph(labelPrefix, insertLocation);
       insertedParagraph.font.bold = true;
-      insertedParagraph.font.name = "Times New Roman";
-      insertedParagraph.font.size = 12;
+      insertedParagraph.font.name = targetFontName;
+      insertedParagraph.font.size = targetFontSize;
       insertedParagraph.alignment = Word.Alignment.centered;
 
       // Sisipkan Native Word Field (SEQ) untuk penomoran otomatis yang bisa di-Update Field
@@ -90,7 +99,7 @@ export class CaptionService {
   }
 
   /**
-   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field).
+   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field) & font inheritan dokumen.
    */
   public static async autoCaptionAllTables(): Promise<number> {
     let processedCount = 0;
@@ -108,15 +117,23 @@ export class CaptionService {
         const startRange = body.getRange("Start");
         const docUpToTable = startRange.expandTo(tableRange);
         docUpToTable.load("text");
+
+        // Ambil sampel font dari paragraf tabel / sekitar
+        const parentParagraph = tableRange.paragraphs.getFirst();
+        parentParagraph.load("font/name, font/size");
+
         await context.sync();
 
         const chapter = this.extractChapterNumber(docUpToTable.text);
         const labelPrefix = `Tabel ${chapter}. `;
 
+        const targetFontName = parentParagraph.font.name || "Times New Roman";
+        const targetFontSize = parentParagraph.font.size || 12;
+
         const insertedParagraph = table.insertParagraph(labelPrefix, Word.InsertLocation.before);
         insertedParagraph.font.bold = true;
-        insertedParagraph.font.name = "Times New Roman";
-        insertedParagraph.font.size = 12;
+        insertedParagraph.font.name = targetFontName;
+        insertedParagraph.font.size = targetFontSize;
         insertedParagraph.alignment = Word.Alignment.centered;
 
         const seqFieldName = `Tabel_Bab${chapter}`;
