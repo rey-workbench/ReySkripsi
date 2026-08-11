@@ -94,7 +94,7 @@ export class AiChatbotModule implements IModule {
                         
                         <!-- Custom Dropdown Trigger -->
                         <div id="ai-model-trigger" style="display: flex; align-items: center; cursor: pointer; padding: 4px 8px; border-radius: 16px; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
-                            <span id="ai-model-display" style="font-size: 12px; color: #6b7280; font-weight: 600; margin-right: 4px;">Flash-Lite 2.5 (Paling Irit)</span>
+                            <span id="ai-model-display" style="font-size: 12px; color: #6b7280; font-weight: 600; margin-right: 4px;">Gemini 2.5 Flash-Lite</span>
                             <i class="ms-Icon ms-Icon--ChevronDown" style="font-size: 10px; color: #6b7280;"></i>
                         </div>
                         

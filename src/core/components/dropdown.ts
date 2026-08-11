@@ -1,6 +1,6 @@
 import styles from './css/input.css';
 
-export interface DropdownOption {
+interface DropdownOption {
     value: string;
     label: string;
 }
