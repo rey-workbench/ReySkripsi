@@ -253,7 +253,8 @@ export class CaptionService {
       await context.sync();
 
       const currentChapter = this.extractChapterNumber(documentUpToCursor.text);
-      const labelPrefix = `${label} ${currentChapter}.`;
+      const captionLabel = `${label} ${currentChapter}.`;
+      const labelPrefix = `${label} ${currentChapter}. `;
 
       const targetFontName = "Times New Roman";
       const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
@@ -266,12 +267,11 @@ export class CaptionService {
       insertedParagraph.font.size = targetFontSize;
       insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
 
-      // Menggunakan nama SEQ standar label "Tabel" atau "Gambar" agar terbaca oleh Table of Figures Word (TOC \c "Tabel")
-      const seqFieldName = label;
+      // SEQ field resmi dengan nama label persis "Tabel X." / "Gambar X."
       const endOfLabel = insertedParagraph.getRange("End");
 
       if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
-        endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `${seqFieldName} \\s ${currentChapter}`, true);
+        endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `"${captionLabel}" \\* ARABIC`, true);
       } else {
         endOfLabel.insertText("1", Word.InsertLocation.after);
       }
@@ -283,7 +283,7 @@ export class CaptionService {
       }
 
       await context.sync();
-      captionTextInserted = `${label} ${currentChapter}.[SEQ ${seqFieldName}] ${captionTitle}`;
+      captionTextInserted = `${captionLabel} ${captionTitle}`;
     });
 
     // Otomatis cari & update / buatkan Daftar Tabel atau Daftar Gambar di halaman awal
@@ -341,7 +341,8 @@ export class CaptionService {
         await context.sync();
 
         const chapter = this.extractChapterNumber(docUpToTable.text);
-        const labelPrefix = `Tabel ${chapter}.`;
+        const captionLabel = `Tabel ${chapter}.`;
+        const labelPrefix = `Tabel ${chapter}. `;
 
         const targetFontName = "Times New Roman";
         const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
@@ -353,11 +354,10 @@ export class CaptionService {
         insertedParagraph.font.size = targetFontSize;
         insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
 
-        const seqFieldName = "Tabel";
         const endOfLabel = insertedParagraph.getRange("End");
 
         if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
-          endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `${seqFieldName} \\s ${chapter}`, true);
+          endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `"${captionLabel}" \\* ARABIC`, true);
         } else {
           endOfLabel.insertText("1", Word.InsertLocation.after);
         }
