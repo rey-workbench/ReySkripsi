@@ -2,3 +2,4 @@ export * from './ai-chatbot/index';
 export * from './auto-language/index';
 export * from './batch-manual/index';
 export * from './auto-caption/index';
+export * from './settings/index';

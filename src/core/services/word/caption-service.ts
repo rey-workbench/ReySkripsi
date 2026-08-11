@@ -1,4 +1,12 @@
 /// <reference types="office-js" />
+import { AiOrchestrator } from '../ai/ai-orchestrator';
+
+export interface ICaptionStyleOptions {
+  isBold?: boolean;
+  isItalic?: boolean;
+  alignment?: 'centered' | 'left' | 'right';
+  customFontSize?: number;
+}
 
 export class CaptionService {
   /**
@@ -38,10 +46,74 @@ export class CaptionService {
     return this.romanToArabic(rawChapter);
   }
 
+  private static getWordAlignment(alignStr?: string): Word.Alignment {
+    if (alignStr === 'left') return Word.Alignment.left;
+    if (alignStr === 'right') return Word.Alignment.right;
+    return Word.Alignment.centered;
+  }
+
   /**
-   * Menyisipkan Caption dengan Field Asli Word (SEQ Field) dan mempertahankan font bawaan dokumen / pilihan.
+   * Mengambil isi teks data dari tabel terpilih/terdekat untuk diringkas AI.
    */
-  public static async insertCaptionForSelection(label: 'Tabel' | 'Gambar', captionTitle: string): Promise<string> {
+  public static async getSelectedTableDataText(): Promise<string> {
+    let tableText = "";
+
+    await Word.run(async (context) => {
+      const selection = context.document.getSelection();
+      const parentTable = selection.parentTableOrNullObject;
+      parentTable.load("isNullObject, values");
+      await context.sync();
+
+      if (!parentTable.isNullObject && parentTable.values) {
+        tableText = parentTable.values.map((row: string[]) => row.join(" | ")).join("\n");
+      } else {
+        // Jika kursor tepat di atas tabel (sebelum tabel), ambil tabel setelah kursor
+        const nextPara = selection.paragraphs.getFirst().getNext();
+        const nextTable = nextPara.parentTableOrNullObject;
+        nextTable.load("isNullObject, values");
+        await context.sync();
+        if (!nextTable.isNullObject && nextTable.values) {
+          tableText = nextTable.values.map((row: string[]) => row.join(" | ")).join("\n");
+        }
+      }
+    });
+
+    return tableText;
+  }
+
+  /**
+   * Menghasilkan deskripsi caption ringkas (maksimal 4 kata) menggunakan AI berdasarkan data tabel.
+   */
+  public static async generateAiCaptionTitle(tableDataText: string, apiKey: string, model: string = "gemini-3.5-flash"): Promise<string> {
+    if (!tableDataText || !tableDataText.trim()) {
+      return "";
+    }
+
+    const prompt = `Berikut adalah data tabel dari dokumen skripsi/ilmiah:\n\n${tableDataText.slice(0, 1500)}\n\nBuatkan judul/deskripsi caption ringkas untuk tabel ini dalam bahasa Indonesia. SYARAT MUTLAK: Maksimal 4 kata, tanpa kata 'Tabel', tanpa tanda petik, singkat, padat, dan jelas. Contoh: Hasil Pengujian Akurasi Model`;
+    
+    try {
+      const result = await AiOrchestrator.generateResponse(prompt, apiKey, model);
+      let cleanTitle = result.replace(/^["'「」]+|["'「」]+$/g, '').trim();
+      // Jaga agar maks 4 kata
+      const words = cleanTitle.split(/\s+/);
+      if (words.length > 4) {
+        cleanTitle = words.slice(0, 4).join(" ");
+      }
+      return cleanTitle;
+    } catch (e) {
+      console.warn("Gagal membuat AI caption desc:", e);
+      return "";
+    }
+  }
+
+  /**
+   * Menyisipkan Caption dengan Field Asli Word (SEQ Field) serta pengondisian Bold, Italic, Alignment, & Font Size.
+   */
+  public static async insertCaptionForSelection(
+    label: 'Tabel' | 'Gambar', 
+    captionTitle: string,
+    options?: ICaptionStyleOptions
+  ): Promise<string> {
     let captionTextInserted = "";
 
     await Word.run(async (context) => {
@@ -63,17 +135,17 @@ export class CaptionService {
       const currentChapter = this.extractChapterNumber(documentUpToCursor.text);
       const labelPrefix = `${label} ${currentChapter}. `;
 
-      // Font yang digunakan: mengikuti font paragraf sekitar (atau fallback ke Times New Roman jika kosong)
       const targetFontName = parentParagraph.font.name || "Times New Roman";
-      const targetFontSize = parentParagraph.font.size || 12;
+      const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
 
       // Sisipkan paragraf caption baru
       const insertLocation = label === 'Tabel' ? Word.InsertLocation.before : Word.InsertLocation.after;
       const insertedParagraph = selection.insertParagraph(labelPrefix, insertLocation);
-      insertedParagraph.font.bold = true;
+      insertedParagraph.font.bold = options?.isBold !== undefined ? options.isBold : true;
+      insertedParagraph.font.italic = options?.isItalic !== undefined ? options.isItalic : false;
       insertedParagraph.font.name = targetFontName;
       insertedParagraph.font.size = targetFontSize;
-      insertedParagraph.alignment = Word.Alignment.centered;
+      insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
 
       // Sisipkan Native Word Field (SEQ) untuk penomoran otomatis yang bisa di-Update Field
       const seqFieldName = `${label}_Bab${currentChapter}`;
@@ -99,15 +171,18 @@ export class CaptionService {
   }
 
   /**
-   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field) & font inheritan dokumen.
+   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field) & style custom + AI opsional.
    */
-  public static async autoCaptionAllTables(): Promise<number> {
+  public static async autoCaptionAllTables(
+    options?: ICaptionStyleOptions,
+    aiConfig?: { apiKey: string, model: string }
+  ): Promise<number> {
     let processedCount = 0;
 
     await Word.run(async (context) => {
       const body = context.document.body;
       const tables = body.tables;
-      tables.load("items");
+      tables.load("items/values, items/range");
       await context.sync();
 
       for (let i = 0; i < tables.items.length; i++) {
@@ -128,13 +203,14 @@ export class CaptionService {
         const labelPrefix = `Tabel ${chapter}. `;
 
         const targetFontName = parentParagraph.font.name || "Times New Roman";
-        const targetFontSize = parentParagraph.font.size || 12;
+        const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
 
         const insertedParagraph = table.insertParagraph(labelPrefix, Word.InsertLocation.before);
-        insertedParagraph.font.bold = true;
+        insertedParagraph.font.bold = options?.isBold !== undefined ? options.isBold : true;
+        insertedParagraph.font.italic = options?.isItalic !== undefined ? options.isItalic : false;
         insertedParagraph.font.name = targetFontName;
         insertedParagraph.font.size = targetFontSize;
-        insertedParagraph.alignment = Word.Alignment.centered;
+        insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
 
         const seqFieldName = `Tabel_Bab${chapter}`;
         const endOfLabel = insertedParagraph.getRange("End");
@@ -143,6 +219,16 @@ export class CaptionService {
           endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, seqFieldName, true);
         } else {
           endOfLabel.insertText("1", Word.InsertLocation.after);
+        }
+
+        // Jika AI Config tersedia, buatkan deskripsi otomatis dari isi tabel
+        if (aiConfig && aiConfig.apiKey && table.values) {
+          const tableText = table.values.map(row => row.join(" | ")).join("\n");
+          const aiTitle = await CaptionService.generateAiCaptionTitle(tableText, aiConfig.apiKey, aiConfig.model);
+          if (aiTitle) {
+            const afterSeqRange = insertedParagraph.getRange("End");
+            afterSeqRange.insertText(` ${aiTitle}`, Word.InsertLocation.after);
+          }
         }
 
         processedCount++;
