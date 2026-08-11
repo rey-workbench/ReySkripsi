@@ -1,206 +1,206 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dokumentasi ReySkripsi Add-in</title>
-  <!-- Fabric UI Icons & Global Doc Styles -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panduan & Dokumentasi ReySkripsi Add-in - Rey Workbench Q&A</title>
+  <!-- Tailwind CSS CDN & Microsoft Fabric UI Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.min.css"/>
-  <link rel="stylesheet" href="index.css">
-</head>
-<body>
-
-  <!-- Top Header Navigation -->
-  <div class="header">
-    <div class="brand">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="24" height="24" rx="4" fill="#0078D4"/>
-        <path d="M6 6H18V8H6V6ZM6 10H18V12H6V10ZM6 14H14V16H6V14Z" fill="white"/>
-      </svg>
-      <span>ReySkripsi Add-in</span>
-    </div>
-    <div class="nav-links">
-      <a href="#fitur">Fitur</a>
-      <a href="#instalasi">Instalasi</a>
-      <a href="/reyskripsi-manager.exe" download>Unduh Installer</a>
-    </div>
-  </div>
-
-  <!-- Breadcrumb Navigation -->
-  <div class="sub-header">
-    <div class="breadcrumb">
-      <a href="#">Microsoft Office Add-ins</a>
-      <span>/</span>
-      <span>Word Add-ins</span>
-      <span>/</span>
-      <span>ReySkripsi</span>
-    </div>
-  </div>
-
-  <!-- Main Container -->
-  <div class="container">
-    
-    <!-- Article Header -->
-    <div class="article-header">
-      <h1>Dokumentasi & Panduan Penggunaan ReySkripsi Add-in</h1>
-      <div class="article-meta">
-        <span>Artikel</span>
-        <span>•</span>
-        <span>Terakhir Diperbarui: 12/08/2026</span>
-        <span>•</span>
-        <span>Tim ReySkripsi</span>
-      </div>
-    </div>
-
-    <!-- Article Content -->
-    <div class="article-content">
-      <p><strong>ReySkripsi</strong> adalah Microsoft Word Add-in modern yang dirancang khusus untuk mempercepat dan mempermudah penyusunan skripsi, tesis, dan artikel ilmiah sesuai standar akademik Indonesia.</p>
-
-      <!-- All Features Showcase Section -->
-      <h2 id="fitur" class="mt-40">Semua Fitur Utama ReySkripsi</h2>
-      <p>ReySkripsi menyediakan berbagai alat otomatisasi serbaguna yang dapat langsung diakses melalui panel samping (Taskpane) Microsoft Word Anda:</p>
-
-      <div class="features-grid">
-        <!-- Feature 1 -->
-        <div class="feature-card">
-          <div class="feature-icon" style="background: #e0f2fe; color: #0078D4;">
-            <i class="ms-Icon ms-Icon--TableGroup"></i>
-          </div>
-          <h3>1. Auto Caption Bab</h3>
-          <p>Membuat penomoran caption Tabel & Gambar otomatis sesuai Bab (contoh: <code>Tabel 1.1</code>, <code>Tabel 2.1</code>). Menggunakan <strong>Native Word Field (SEQ)</strong> sehingga mendukung <em>Update Field</em> dan Daftar Tabel otomatis.</p>
-        </div>
-
-        <!-- Feature 2 -->
-        <div class="feature-card">
-          <div class="feature-icon" style="background: #f0fdf4; color: #107c41;">
-            <i class="ms-Icon ms-Icon--Translate"></i>
-          </div>
-          <h3>2. Auto Language & KBBI Scanner</h3>
-          <p>Mendeteksi kata-kata bahasa asing dalam dokumen yang belum tercantum di KBBI dan memiringkannya (Italic) secara otomatis maupun terpilih.</p>
-        </div>
-
-        <!-- Feature 3 -->
-        <div class="feature-card">
-          <div class="feature-icon" style="background: #fef3c7; color: #d97706;">
-            <i class="ms-Icon ms-Icon--TextDocument"></i>
-          </div>
-          <h3>3. Batch Manual Italic</h3>
-          <p>Memiringkan kata-kata tertentu sekaligus di seluruh dokumen atau seleksi teks dengan fleksibilitas sensitivitas huruf (Match Case).</p>
-        </div>
-
-        <!-- Feature 4 -->
-        <div class="feature-card">
-          <div class="feature-icon" style="background: #f3e8ff; color: #8b5cf6;">
-            <i class="ms-Icon ms-Icon--Robot"></i>
-          </div>
-          <h3>4. Ask AI Assistant</h3>
-          <p>Asisten AI pintar untuk berkonsultasi, menganalisis, dan merevisi isi skripsi berdasar konteks dokumen lengkap dengan rujukan sitasi.</p>
-        </div>
-
-        <!-- Feature 5 -->
-        <div class="feature-card">
-          <div class="feature-icon" style="background: #ecfdf5; color: #059669;">
-            <i class="ms-Icon ms-Icon--Sparkles"></i>
-          </div>
-          <h3>5. AI Auto-Summarize Caption</h3>
-          <p>Meringkas isi tabel menjadi deskripsi caption ringkas (maksimal 4 kata) menggunakan AI secara efisien dalam 1x panggilan batch request (anti-429 limit).</p>
-        </div>
-
-        <!-- Feature 6 -->
-        <div class="feature-card">
-          <div class="feature-icon" style="background: #f1f5f9; color: #475569;">
-            <i class="ms-Icon ms-Icon--Settings"></i>
-          </div>
-          <h3>6. Terenkripsi & Aman (Settings)</h3>
-          <p>Penyimpanan API Key sensitif (Gemini / NVIDIA) tersimpan aman dan terenkripsi menggunakan <strong>IndexedDB Lokal</strong>, terisolasi dari inspection browser.</p>
-        </div>
-      </div>
-
-      <!-- Carousel Demo Showcase -->
-      <h2>Tampilan Antarmuka Add-in</h2>
-      <div class="carousel-container">
-        <div class="carousel-track">
-          <img src="/assets/demo/demo-2.png" alt="Demo Tampilan Home">
-          <img src="/assets/demo/demo-3.png" alt="Demo Fitur Auto Language">
-          <img src="/assets/demo/demo-4.png" alt="Demo Batch Manual">
-          <img src="/assets/demo/demo-5.png" alt="Demo Ask AI Chatbot">
-        </div>
-      </div>
-
-      <!-- Download & Installation Section -->
-      <h2 id="instalasi">Unduh & Panduan Pemasangan</h2>
-      <p>Untuk mulai menggunakan ReySkripsi di Microsoft Word Anda, silakan unduh aplikasi <strong>ReySkripsi Manager</strong> di bawah ini:</p>
-      
-      <div class="download-group">
-        <a href="/reyskripsi-manager.exe" class="btn-download" download>Unduh reyskripsi-manager.exe</a>
-      </div>
-
-      <div class="tabs">
-        <div class="tab-list">
-          <button class="tab-btn active" onclick="openTab(event, 'tab-desktop')">Word Desktop (Windows)</button>
-          <button class="tab-btn" onclick="openTab(event, 'tab-web')">Word di Web</button>
-          <button class="tab-btn" onclick="openTab(event, 'tab-uninstall')">Cara Uninstall</button>
-        </div>
-
-        <!-- Tab Desktop -->
-        <div id="tab-desktop" class="tab-content active">
-          <p>Langkah-langkah memasang ReySkripsi di Microsoft Word Desktop (Windows):</p>
-          <div class="tutorial-step tutorial-step-green">
-            <ol>
-              <li>Unduh aplikasi <code>reyskripsi-manager.exe</code> melalui tombol unduh di atas.</li>
-              <li><strong>Klik Ganda (Double Click)</strong> file installer tersebut.</li>
-              <li>Klik tombol <strong>Install Add-in</strong> pada jendela installer dan tunggu notifikasi sukses.
-                <br><img src="/assets/demo/demo-1.png" alt="Tutorial Install" class="tutorial-img-large">
-              </li>
-              <li>Buka aplikasi <strong>Microsoft Word</strong>, lalu pilih dokumen baru.</li>
-              <li>Pergi ke tab <strong>Home</strong> (Beranda) > klik menu <strong>Add-ins</strong> > pilih <strong>My Add-ins</strong>.</li>
-              <li>Klik ikon <strong>ReySkripsi</strong> untuk memunculkan sidebar add-in di Word Anda.</li>
-            </ol>
-          </div>
-        </div>
-
-        <!-- Tab Web -->
-        <div id="tab-web" class="tab-content">
-          <p>Langkah-langkah untuk Microsoft Word Web (Browser):</p>
-          <div class="tutorial-step tutorial-step-green">
-            <ol>
-              <li>Buka <a href="https://word.office.com" target="_blank" rel="noopener noreferrer" class="link-blue">Word di Web</a> dan buat dokumen baru.</li>
-              <li>Pilih tab <strong>Home</strong> atau <strong>Insert</strong> di pita menu atas.</li>
-              <li>Klik menu <strong>Add-ins</strong> > pilih <strong>Upload My Add-in</strong> (Unggah Add-in Saya).</li>
-              <li>Pilih file <code>manifest.xml</code> dari repository project, lalu klik <strong>Upload</strong>.</li>
-            </ol>
-          </div>
-        </div>
-
-        <!-- Tab Uninstall -->
-        <div id="tab-uninstall" class="tab-content">
-          <p>Menghapus Add-in ReySkripsi dari komputer:</p>
-          <div class="tutorial-step tutorial-step-red">
-            <ol>
-              <li>Buka kembali aplikasi <code>reyskripsi-manager.exe</code>.</li>
-              <li>Klik tombol <strong>Uninstall</strong>.</li>
-              <li>Restart Microsoft Word jika sedang terbuka.</li>
-            </ol>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <script>
-    function openTab(event, tabName) {
-      const tabContents = document.getElementsByClassName("tab-content");
-      for (let i = 0; i < tabContents.length; i++) {
-        tabContents[i].classList.remove("active");
-      }
-      const tabBtns = document.getElementsByClassName("tab-btn");
-      for (let i = 0; i < tabBtns.length; i++) {
-        tabBtns[i].classList.remove("active");
-      }
-      document.getElementById(tabName).classList.add("active");
-      event.currentTarget.classList.add("active");
+  <style>
+    .carousel-track {
+      display: flex;
+      width: calc(100% * 4);
+      animation: slide 12s infinite;
     }
-  </script>
+    .carousel-track img {
+      width: calc(100% / 4);
+      height: 380px;
+      object-fit: contain;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    @keyframes slide {
+      0%, 20% { transform: translateX(0); }
+      25%, 45% { transform: translateX(-25%); }
+      50%, 70% { transform: translateX(-50%); }
+      75%, 95% { transform: translateX(-75%); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Top Bar Navbar -->
+  <header class="bg-[#242424] text-white h-12 flex items-center justify-between px-6 shadow-md text-sm border-b border-gray-700">
+    <div class="flex items-center gap-6">
+      <a href="https://github.com/rey-workbench" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2.5 font-semibold text-white">
+        <img src="https://avatars.githubusercontent.com/u/233570773?s=200&v=4" alt="Rey Workbench" class="w-6 h-6 rounded-full border border-gray-500">
+        <span class="text-base tracking-tight font-bold">Rey Workbench <span class="font-normal text-gray-400">| Q&A</span></span>
+      </a>
+    </div>
+    <div class="flex items-center gap-4 text-xs font-medium text-gray-300">
+      <a href="/reyskripsi-manager.exe" download class="bg-[#0078D4] hover:bg-blue-600 text-white font-semibold px-3 py-1.5 rounded transition-colors flex items-center gap-1.5">
+        <i class="ms-Icon ms-Icon--Download"></i> Unduh Installer
+      </a>
+    </div>
+  </header>
+
+  <!-- Sub-Header Breadcrumb -->
+  <div class="bg-white border-b border-gray-200 px-6 py-2.5 text-xs text-gray-500 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <a href="https://github.com/rey-workbench" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Rey Workbench</a>
+      <span>/</span>
+      <a href="https://github.com/rey-workbench" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Dokumentasi Add-in</a>
+      <span>/</span>
+      <span class="text-gray-700 font-medium">ReySkripsi</span>
+    </div>
+  </div>
+
+  <!-- Main Q&A Content Container -->
+  <main class="max-w-5xl mx-auto px-4 py-8 flex-grow w-full">
+    <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+      
+      <!-- Thread Title -->
+      <h1 class="text-2xl md:text-3xl font-semibold text-gray-900 mb-4 tracking-tight leading-snug">
+        Panduan Lengkap Menginstal dan Menggunakan ReySkripsi Word Add-in
+      </h1>
+
+      <!-- Author Metadata Row -->
+      <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
+        <div class="flex items-center gap-3">
+          <a href="https://github.com/rey-workbench" target="_blank" rel="noopener noreferrer">
+            <img src="https://avatars.githubusercontent.com/u/233570773?s=200&v=4" alt="Rey Workbench" class="w-10 h-10 rounded-full border border-gray-300 shadow-sm hover:opacity-90 transition-opacity">
+          </a>
+          <div>
+            <div class="flex items-center gap-2">
+              <a href="https://github.com/rey-workbench" target="_blank" rel="noopener noreferrer" class="font-semibold text-sm text-gray-900 hover:text-blue-600 hover:underline">
+                Rey Workbench (Reynald Silva)
+              </a>
+              <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Author</span>
+            </div>
+            <span class="text-xs text-gray-500">Dibuat khusus untuk kemudahan penulisan skripsi & karya ilmiah</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-300 text-xs font-semibold px-3 py-1.5 rounded flex items-center gap-1.5">
+            <i class="ms-Icon ms-Icon--Like"></i>
+            <span>Suka (38)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Thread Content -->
+      <div class="text-gray-800 text-sm leading-relaxed space-y-4">
+        <p>Halo semuanya!</p>
+        <p>
+          Saya telah mengembangkan <strong>ReySkripsi</strong>, sebuah Microsoft Word Add-in praktis untuk otomatisasi penulisan skripsi dan makalah ilmiah sesuai standar akademik Indonesia (KBBI & Pedoman Ejaan).
+        </p>
+
+        <p class="font-semibold text-gray-900 text-base border-b border-gray-200 pb-1 pt-2">Daftar Fitur Unggulan:</p>
+
+        <p><strong>1. Auto Caption Bab</strong><br>
+        Penyisipan caption otomatis untuk Tabel & Gambar berdasar nomor BAB (Contoh: <code>Tabel 1.1</code>, <code>Tabel 2.1</code>). Menggunakan Native Word SEQ Field yang otomatis terhubung dengan Daftar Tabel / Daftar Gambar Word.
+        </p>
+
+        <p><strong>2. KBBI & Foreign Word Scanner</strong><br>
+        Mendeteksi kata-kata bahasa asing dalam dokumen yang belum tercantum di KBBI dan memiringkannya (<em>Italic</em>) secara otomatis maupun terpilih.
+        </p>
+
+        <p><strong>3. Batch Manual Italic</strong><br>
+        Memiringkan kata-kata tertentu sekaligus di seluruh dokumen atau seleksi teks dengan fleksibilitas sensitivitas huruf (Match Case).
+        </p>
+
+        <p><strong>4. Ask AI Assistant</strong><br>
+        Asisten AI pintar (Gemini 3) untuk berkonsultasi, menganalisis, dan merevisi naskah skripsi berdasar konteks dokumen lengkap dengan rujukan sitasi.
+        </p>
+
+        <p><strong>5. AI Auto-Summarize Caption</strong><br>
+        Meringkas data tabel/gambar menjadi judul caption (maks 4 kata) menggunakan AI secara efisien dalam 1x panggilan batch request.
+        </p>
+
+        <p><strong>6. Terenkripsi & Aman (Settings)</strong><br>
+        API Key sensitif (Gemini / NVIDIA) tersimpan aman dan terenkripsi menggunakan <strong>IndexedDB Lokal</strong> perangkat Anda.
+        </p>
+
+        <!-- Carousel Demo -->
+        <div class="pt-4">
+          <p class="font-semibold text-gray-900 mb-2">Tampilan Antarmuka Aplikasi Add-in:</p>
+          <div class="w-full overflow-hidden relative rounded border border-gray-200 bg-gray-50 shadow-inner">
+            <div class="carousel-track">
+              <img src="/assets/demo/demo-2.png" alt="Demo Home Taskpane">
+              <img src="/assets/demo/demo-3.png" alt="Demo Auto Language">
+              <img src="/assets/demo/demo-4.png" alt="Demo Batch Manual">
+              <img src="/assets/demo/demo-5.png" alt="Demo Ask AI Chatbot">
+            </div>
+          </div>
+        </div>
+
+        <!-- Practical Installation Steps Section -->
+        <div class="pt-8 border-t border-gray-200 mt-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="ms-Icon ms-Icon--Download text-blue-600"></i>
+            Cara Pemasangan Sangat Mudah (3 Langkah Cepat)
+          </h2>
+
+          <div class="bg-emerald-50/80 border border-emerald-300 rounded-lg p-5 mb-6 text-sm">
+            <h3 class="font-bold text-emerald-950 text-base mb-3 flex items-center gap-2">
+              <i class="ms-Icon ms-Icon--Accept text-emerald-600"></i>
+              Untuk Word Desktop (Windows)
+            </h3>
+            
+            <div class="space-y-4 text-emerald-950">
+              <div class="flex items-start gap-3">
+                <span class="bg-emerald-600 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-xs">1</span>
+                <div>
+                  <strong>Unduh Aplikasi Installer:</strong>
+                  <div class="mt-2">
+                    <a href="/reyskripsi-manager.exe" download class="inline-flex items-center gap-2 bg-[#0078D4] hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2 rounded shadow-sm transition-colors">
+                      <i class="ms-Icon ms-Icon--Download"></i> Klik di sini untuk mengunduh reyskripsi-manager.exe
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <span class="bg-emerald-600 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-xs">2</span>
+                <div>
+                  <strong>Jalankan Installer:</strong>
+                  <p class="text-xs text-gray-700 mt-0.5">Klik 2x file <code class="bg-white border px-1 rounded text-emerald-900 font-mono">reyskripsi-manager.exe</code>, lalu klik tombol <strong>Install Add-in</strong>.</p>
+                  <img src="/assets/demo/demo-1.png" alt="Tutorial Install" class="max-w-md w-full rounded border border-gray-300 mt-2 shadow-sm">
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <span class="bg-emerald-600 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-xs">3</span>
+                <div>
+                  <strong>Buka Microsoft Word:</strong>
+                  <p class="text-xs text-gray-700 mt-0.5">Buka MS Word > Pergi ke tab menu <strong>Home (Beranda)</strong> > klik <strong>Add-ins</strong> > pilih <strong>My Add-ins</strong> > klik ikon <strong>ReySkripsi</strong>. Selesai!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Simple Web Version Steps -->
+          <div class="bg-blue-50/70 border border-blue-200 rounded-lg p-5 text-sm">
+            <h3 class="font-bold text-blue-950 text-base mb-2 flex items-center gap-2">
+              <i class="ms-Icon ms-Icon--Globe text-blue-600"></i>
+              Untuk Word Versi Web (Browser)
+            </h3>
+            <p class="text-xs text-gray-700 mb-2">Buka <a href="https://word.office.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-semibold hover:underline">Word di Web</a> > Pilih tab <strong>Home/Insert</strong> > <strong>Add-ins</strong> > <strong>Upload My Add-in</strong> > Pilih file <code class="bg-white border px-1 rounded font-mono">manifest.xml</code>.</p>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 text-center py-4 text-xs text-gray-500 flex items-center justify-center gap-2">
+    <img src="https://avatars.githubusercontent.com/u/233570773?s=200&v=4" alt="Rey Workbench" class="w-4 h-4 rounded-full">
+    <span>© 2026 <a href="https://github.com/rey-workbench" target="_blank" rel="noopener noreferrer" class="hover:underline text-gray-700 font-semibold">Rey Workbench</a> • Rey Workbook Add-in Documentation</span>
+  </footer>
+
 </body>
 </html>
