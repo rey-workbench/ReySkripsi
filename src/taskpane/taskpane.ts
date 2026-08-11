@@ -6,7 +6,7 @@
 /// <reference types="office-js" />
 import { AutoUpdater } from '../core/services/system/auto-updater';
 import { AppRouter } from '../core/app-router';
-import { AutoLanguageModule, BatchManualModule, AiChatbotModule } from '../modules/index';
+import { AutoLanguageModule, BatchManualModule, AiChatbotModule, AutoCaptionModule } from '../modules/index';
 import './taskpane.css';
 
 Office.onReady((info) => {
@@ -17,6 +17,7 @@ Office.onReady((info) => {
     const app = new AppRouter();
     
     // Register Modules (SRP: AppRouter handles UI generation and bindings)
+    app.register(new AutoCaptionModule());
     app.register(new AutoLanguageModule());
     app.register(new BatchManualModule());
     app.register(new AiChatbotModule());
