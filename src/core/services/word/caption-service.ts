@@ -230,8 +230,7 @@ export class CaptionService {
       await context.sync();
 
       const currentChapter = this.extractChapterNumber(documentUpToCursor.text);
-      const captionLabel = `${label} ${currentChapter}.`;
-      const labelPrefix = `${label} ${currentChapter}. `;
+      const labelPrefix = `${label} ${currentChapter}.`;
 
       const targetFontName = "Times New Roman";
       const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
@@ -244,7 +243,7 @@ export class CaptionService {
       insertedParagraph.font.size = targetFontSize;
       insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
 
-      // SEQ field resmi dengan nama label persis "Tabel X." / "Gambar X."
+      // SEQ field me-render angka urut (1, 2, dst). Tidak perlu menambahkan angka hardcoded lagi.
       const endOfLabel = insertedParagraph.getRange("End");
 
       if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
@@ -260,7 +259,7 @@ export class CaptionService {
       }
 
       await context.sync();
-      captionTextInserted = `${captionLabel} ${captionTitle}`;
+      captionTextInserted = `${labelPrefix} ${captionTitle}`;
     });
 
     // Otomatis cari & update / buatkan Daftar Tabel atau Daftar Gambar di halaman awal
@@ -318,8 +317,7 @@ export class CaptionService {
         await context.sync();
 
         const chapter = this.extractChapterNumber(docUpToTable.text);
-        const captionLabel = `Tabel ${chapter}.`;
-        const labelPrefix = `Tabel ${chapter}. `;
+        const labelPrefix = `Tabel ${chapter}.`;
 
         const targetFontName = "Times New Roman";
         const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
