@@ -184,45 +184,22 @@ export class CaptionService {
     await Word.run(async (context) => {
       const body = context.document.body;
       
-      // Update seluruh Field di dokumen (jika TOC/TOF sudah ada)
+      // Cukup update seluruh Field yang ada di dokumen (TOC / TOF / SEQ)
       if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
         try {
           const fields = body.fields;
           fields.load("items/code");
           await context.sync();
 
-          let hasUpdated = false;
           for (const field of fields.items) {
             const code = (field.code || "").toUpperCase();
             if (code.includes("TOC") || code.includes("SEQ")) {
               field.result.font.name = "Times New Roman";
-              hasUpdated = true;
             }
           }
-          if (hasUpdated) {
-            await context.sync();
-          }
+          await context.sync();
         } catch (e) {
           console.warn("Gagal update fields:", e);
-        }
-      }
-
-      // Cari Paragraf Judul "DAFTAR TABEL" atau "DAFTAR GAMBAR" di halaman awal
-      const targetHeader = label === 'Tabel' ? "DAFTAR TABEL" : "DAFTAR GAMBAR";
-      const searchResults = body.search(targetHeader, { matchCase: false, matchWholeWord: false });
-      searchResults.load("items");
-      await context.sync();
-
-      if (searchResults.items.length > 0) {
-        const headerItem = searchResults.items[0];
-        const headerRange = headerItem.getRange("End");
-        
-        // Cek apakah di bawahnya sudah ada TOC / TOF Field
-        if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
-          const tofInstruction = `TOC \\h \\z \\c "${label}"`;
-          const insertedField = headerRange.insertField(Word.InsertLocation.after, Word.FieldType.toc, tofInstruction, true);
-          insertedField.result.font.name = "Times New Roman";
-          await context.sync();
         }
       }
     });
@@ -271,7 +248,7 @@ export class CaptionService {
       const endOfLabel = insertedParagraph.getRange("End");
 
       if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
-        endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `"${captionLabel}" \\* ARABIC`, true);
+        endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `${label} \\s ${currentChapter}`, true);
       } else {
         endOfLabel.insertText("1", Word.InsertLocation.after);
       }
@@ -357,7 +334,7 @@ export class CaptionService {
         const endOfLabel = insertedParagraph.getRange("End");
 
         if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
-          endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `"${captionLabel}" \\* ARABIC`, true);
+          endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `Tabel \\s ${chapter}`, true);
         } else {
           endOfLabel.insertText("1", Word.InsertLocation.after);
         }
