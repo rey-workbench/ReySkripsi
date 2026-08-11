@@ -250,7 +250,8 @@ export class CaptionService {
       const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
 
       const insertLocation = label === 'Tabel' ? Word.InsertLocation.before : Word.InsertLocation.after;
-      const insertedParagraph = selection.insertParagraph(labelPrefix, insertLocation);
+      const targetParagraph = selection.paragraphs.getFirst();
+      const insertedParagraph = targetParagraph.insertParagraph(labelPrefix, insertLocation);
       insertedParagraph.font.bold = options?.isBold !== undefined ? options.isBold : true;
       insertedParagraph.font.italic = options?.isItalic !== undefined ? options.isItalic : false;
       insertedParagraph.font.name = targetFontName;
