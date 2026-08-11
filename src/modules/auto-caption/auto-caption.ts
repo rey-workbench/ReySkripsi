@@ -2,6 +2,7 @@
 import { CaptionService, ICaptionStyleOptions } from '../../core/services/word/caption-service';
 import { ToastService } from '../../core/services/ui/toast-service';
 import { ModalService } from '../../core/services/ui/modal-service';
+import { StorageService } from '../../core/services/storage/storage-service';
 import { IModule } from '../../core/interfaces';
 import { Button } from '../../core/components/button';
 import { Dropdown } from '../../core/components/dropdown';
@@ -125,17 +126,17 @@ export class AutoCaptionModule implements IModule {
     const label = (labelSelect?.value || "Tabel") as 'Tabel' | 'Gambar';
     let title = titleInput?.value.trim() || "";
     const options = this.getStyleOptions();
-    const apiKey = localStorage.getItem("gemini_api_key") || "";
+    const apiKey = await StorageService.getItem("gemini_api_key");
+    const model = "gemini-2.5-flash-lite";
 
     try {
       ToastService.showProgress("Membuat caption...", 30);
 
-      // Jika API Key tersimpan di Settings dan judul manual kosong, otomatis ringkas dari isi tabel via AI
       if (apiKey && !title && label === 'Tabel') {
-        ToastService.showProgress("AI sedang menganalisis tabel & membuat ringkasan (maks 4 kata)...", 60);
+        ToastService.showProgress(`AI menganalisis & merangkum tabel (maks 4 kata)...`, 60);
         const tableText = await CaptionService.getSelectedTableDataText();
         if (tableText) {
-          title = await CaptionService.generateAiCaptionTitle(tableText, apiKey);
+          title = await CaptionService.generateAiCaptionTitle(tableText, apiKey, model);
         }
       }
 
@@ -157,11 +158,12 @@ export class AutoCaptionModule implements IModule {
     if (!isConfirmed) return;
 
     const options = this.getStyleOptions();
-    const apiKey = localStorage.getItem("gemini_api_key") || "";
+    const apiKey = await StorageService.getItem("gemini_api_key");
+    const model = "gemini-2.5-flash-lite";
 
     try {
       ToastService.showProgress("Memproses seluruh tabel dokumen...", 30);
-      const aiConfig = apiKey ? { apiKey: apiKey, model: 'gemini-3.5-flash' } : undefined;
+      const aiConfig = apiKey ? { apiKey: apiKey, model: model } : undefined;
       const count = await CaptionService.autoCaptionAllTables(options, aiConfig);
       ToastService.show(`Berhasil memberi caption otomatis pada ${count} tabel!`);
     } catch (e: any) {

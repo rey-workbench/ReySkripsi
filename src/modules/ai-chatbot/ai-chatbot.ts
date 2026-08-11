@@ -1,6 +1,7 @@
 import { IModule } from '../../core/interfaces';
 import { ToastService } from '../../core/services/ui/toast-service';
 import { AiOrchestrator } from '../../core/services/ai/ai-orchestrator';
+import { StorageService } from '../../core/services/storage/storage-service';
 
 export class AiChatbotModule implements IModule {
     public id = "module-ai-chatbot";
@@ -27,14 +28,6 @@ export class AiChatbotModule implements IModule {
             </div>
             
             <div class="module-content" style="display: flex; flex-direction: column; height: calc(100vh - 120px);">
-                <div style="margin-bottom: 24px;">
-                    <label class="ms-fontWeight-semibold" style="display: block; margin-bottom: 12px; font-size: 14px; color: #111827;">Pengaturan Kunci API (API Key)</label>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <input type="password" id="ai-api-key" class="ms-TextField-field" placeholder="Masukkan Gemini API Key..." style="width: 100%; box-sizing: border-box; padding: 10px 14px; border-radius: 6px; border: 1px solid #d1d5db; font-size: 13px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0078D4'" onblur="this.style.borderColor='#d1d5db'" />
-                        <input type="password" id="nvidia-api-key" class="ms-TextField-field" placeholder="Masukkan NVIDIA API Key..." style="width: 100%; box-sizing: border-box; padding: 10px 14px; border-radius: 6px; border: 1px solid #d1d5db; font-size: 13px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0078D4'" onblur="this.style.borderColor='#d1d5db'" />
-                    </div>
-                </div>
-
                 <div id="ai-chat-history" style="flex: 1; overflow-y: auto; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
                     <div id="ai-chat-empty" style="text-align: center; color: #6b7280; font-size: 13px; margin-top: 20px;">
                         Mulai percakapan dengan AI. Pesan Anda akan direspons otomatis berdasarkan isi dokumen.
@@ -90,21 +83,20 @@ export class AiChatbotModule implements IModule {
                         
                         <!-- Custom Dropdown Trigger -->
                         <div id="ai-model-trigger" style="display: flex; align-items: center; cursor: pointer; padding: 4px 8px; border-radius: 16px; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
-                            <span id="ai-model-display" style="font-size: 12px; color: #6b7280; font-weight: 600; margin-right: 4px;">Flash 3.5</span>
+                            <span id="ai-model-display" style="font-size: 12px; color: #6b7280; font-weight: 600; margin-right: 4px;">Flash-Lite 2.5 (Paling Irit)</span>
                             <i class="ms-Icon ms-Icon--ChevronDown" style="font-size: 10px; color: #6b7280;"></i>
                         </div>
                         
                         <!-- Custom Dropdown Menu -->
-                        <div id="ai-model-menu" style="display: none; position: absolute; bottom: 100%; left: 12px; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 4px 0; min-width: 160px; z-index: 100;">
-                            <div class="ai-model-item" data-value="gemini-3.5-flash" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Flash 3.5</div>
-                            <div class="ai-model-item" data-value="gemini-3-flash-preview" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Flash 3</div>
-                            <div class="ai-model-item" data-value="gemini-2.5-pro" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Pro 2.5</div>
-                            <div class="ai-model-item" data-value="gemini-2.5-flash" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Gemini Flash 2.5</div>
+                        <div id="ai-model-menu" style="display: none; position: absolute; bottom: 100%; left: 12px; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 4px 0; min-width: 220px; z-index: 100; max-height: 250px; overflow-y: auto;">
+                            <div class="ai-model-item" data-value="gemini-2.5-flash-lite" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151; font-weight: 600;">⚡ Gemini 2.5 Flash-Lite (Super Hemat & Cepat)</div>
+                            <div class="ai-model-item" data-value="gemini-2.5-flash" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">🚀 Gemini 2.5 Flash</div>
+                            <div class="ai-model-item" data-value="gemini-2.5-pro" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">🧠 Gemini 2.5 Pro</div>
                             <div style="height: 1px; background: #e2e8f0; margin: 4px 0;"></div>
                             <div class="ai-model-item" data-value="minimax-m3" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">Minimax-M3 (NVIDIA)</div>
                         </div>
                         <!-- Hidden input to store selected model -->
-                        <input type="hidden" id="ai-model-select" value="gemini-3.5-flash" />
+                        <input type="hidden" id="ai-model-select" value="gemini-2.5-flash-lite" />
     
                         <button id="ai-btn-send" style="background: #0078D4; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; color: white; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,120,212,0.2);" onmouseover="this.style.background='#005a9e'" onmouseout="this.style.background='#0078D4'">
                             <i class="ms-Icon ms-Icon--Send" style="font-size: 14px; margin-left: 2px;"></i>
@@ -445,9 +437,7 @@ export class AiChatbotModule implements IModule {
         }
     }
 
-    private getApiKeyAndModel(): { apiKey: string, model: string } | null {
-        const geminiKeyEl = document.getElementById("ai-api-key") as HTMLInputElement;
-        const nvidiaKeyEl = document.getElementById("nvidia-api-key") as HTMLInputElement;
+    private async getApiKeyAndModel(): Promise<{ apiKey: string, model: string } | null> {
         const modelEl = document.getElementById("ai-model-select") as HTMLInputElement;
         
         const selectedModel = modelEl ? modelEl.value : 'gemini-3.5-flash';
@@ -455,17 +445,17 @@ export class AiChatbotModule implements IModule {
         
         let apiKey = '';
         if (isNvidia) {
-            if (!nvidiaKeyEl || !nvidiaKeyEl.value.trim()) {
-                ToastService.show("Silakan masukkan NVIDIA API Key terlebih dahulu.", true);
+            apiKey = await StorageService.getItem("nvidia_api_key");
+            if (!apiKey) {
+                ToastService.show("Silakan atur NVIDIA API Key di menu Settings terlebih dahulu.", true);
                 return null;
             }
-            apiKey = nvidiaKeyEl.value.trim();
         } else {
-            if (!geminiKeyEl || !geminiKeyEl.value.trim()) {
-                ToastService.show("Silakan masukkan Gemini API Key terlebih dahulu.", true);
+            apiKey = await StorageService.getItem("gemini_api_key");
+            if (!apiKey) {
+                ToastService.show("Silakan atur Gemini API Key di menu Settings terlebih dahulu.", true);
                 return null;
             }
-            apiKey = geminiKeyEl.value.trim();
         }
 
         return {
@@ -477,7 +467,7 @@ export class AiChatbotModule implements IModule {
     private async handleSend() {
         if (this.isGenerating) return;
 
-        const config = this.getApiKeyAndModel();
+        const config = await this.getApiKeyAndModel();
         if (!config) return;
 
         const inputEl = document.getElementById("ai-chat-input") as HTMLInputElement;

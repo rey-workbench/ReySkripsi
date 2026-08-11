@@ -94,7 +94,6 @@ export class CaptionService {
     try {
       const result = await AiOrchestrator.generateResponse(prompt, apiKey, model);
       let cleanTitle = result.replace(/^["'「」]+|["'「」]+$/g, '').trim();
-      // Jaga agar maks 4 kata
       const words = cleanTitle.split(/\s+/);
       if (words.length > 4) {
         cleanTitle = words.slice(0, 4).join(" ");
@@ -104,6 +103,44 @@ export class CaptionService {
       console.warn("Gagal membuat AI caption desc:", e);
       return "";
     }
+  }
+
+  /**
+   * Menghasilkan ringkasan deskripsi judul untuk BANYAK TABEL Sekaligus dalam 1x panggilan API (Batch Prompting).
+   * Mencegah HTTP 429 Too Many Requests.
+   */
+  public static async generateBatchAiCaptionTitles(
+    tablesDataTextList: string[], 
+    apiKey: string, 
+    model: string = "gemini-3.5-flash"
+  ): Promise<string[]> {
+    if (!tablesDataTextList || tablesDataTextList.length === 0) {
+      return [];
+    }
+
+    let prompt = `Berikut adalah data dari beberapa tabel skripsi. Tugas Anda adalah memberikan 1 judul/deskripsi singkat (maksimal 4 kata) untuk MASING-MASING TABEL.\n\nFORMAT OUTPUT WAJIB JSON ARRAY OF STRINGS:\n["Judul Tabel 1", "Judul Tabel 2", "Judul Tabel 3"]\n\nSyarat: Maksimal 4 kata per judul, tanpa kata 'Tabel', tanpa penomoran.\n\n`;
+
+    tablesDataTextList.forEach((dataText, idx) => {
+      prompt += `--- TABEL ${idx + 1} ---\n${dataText.slice(0, 800)}\n\n`;
+    });
+
+    try {
+      const resultText = await AiOrchestrator.generateResponse(prompt, apiKey, model);
+      // Ekstrak JSON Array dari respons
+      const jsonMatch = resultText.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const parsedTitles: string[] = JSON.parse(jsonMatch[0]);
+        return parsedTitles.map(t => {
+          let clean = t.replace(/^["'「」]+|["'「」]+$/g, '').trim();
+          const words = clean.split(/\s+/);
+          return words.length > 4 ? words.slice(0, 4).join(" ") : clean;
+        });
+      }
+    } catch (e) {
+      console.warn("Gagal batch prompt AI caption titles:", e);
+    }
+
+    return new Array(tablesDataTextList.length).fill("");
   }
 
   /**
@@ -120,13 +157,11 @@ export class CaptionService {
       const selection = context.document.getSelection();
       const body = context.document.body;
 
-      // Ambil seluruh teks sebelum lokasi kursor untuk deteksi Bab
       const startRange = body.getRange("Start");
       const cursorRange = selection.getRange("Start");
       const documentUpToCursor = startRange.expandTo(cursorRange);
       documentUpToCursor.load("text");
       
-      // Ambil sampel font dari paragraf terdekat tempat kursor berada
       const parentParagraph = selection.paragraphs.getFirst();
       parentParagraph.load("font/name, font/size");
 
@@ -138,7 +173,6 @@ export class CaptionService {
       const targetFontName = parentParagraph.font.name || "Times New Roman";
       const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
 
-      // Sisipkan paragraf caption baru
       const insertLocation = label === 'Tabel' ? Word.InsertLocation.before : Word.InsertLocation.after;
       const insertedParagraph = selection.insertParagraph(labelPrefix, insertLocation);
       insertedParagraph.font.bold = options?.isBold !== undefined ? options.isBold : true;
@@ -147,7 +181,6 @@ export class CaptionService {
       insertedParagraph.font.size = targetFontSize;
       insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
 
-      // Sisipkan Native Word Field (SEQ) untuk penomoran otomatis yang bisa di-Update Field
       const seqFieldName = `${label}_Bab${currentChapter}`;
       const endOfLabel = insertedParagraph.getRange("End");
 
@@ -157,7 +190,6 @@ export class CaptionService {
         endOfLabel.insertText("1", Word.InsertLocation.after);
       }
 
-      // Jika ada Judul / Deskripsi Caption
       if (captionTitle) {
         const afterSeqRange = insertedParagraph.getRange("End");
         afterSeqRange.insertText(` ${captionTitle}`, Word.InsertLocation.after);
@@ -171,7 +203,7 @@ export class CaptionService {
   }
 
   /**
-   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field) & style custom + AI opsional.
+   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field) & BATCH PROMPT AI (1x Panggilan API).
    */
   public static async autoCaptionAllTables(
     options?: ICaptionStyleOptions,
@@ -185,6 +217,25 @@ export class CaptionService {
       tables.load("items/values, items/range");
       await context.sync();
 
+      // Tahap 1: Jika AI Config aktif, kumpulkan seluruh data tabel dulu & panggil AI BATCH 1 KALI
+      let aiTitlesBatch: string[] = [];
+      if (aiConfig && aiConfig.apiKey) {
+        const tablesTextList: string[] = [];
+        for (let i = 0; i < tables.items.length; i++) {
+          const table = tables.items[i];
+          if (table.values) {
+            const tableText = table.values.map((row: string[]) => row.join(" | ")).join("\n");
+            tablesTextList.push(tableText);
+          } else {
+            tablesTextList.push("");
+          }
+        }
+        
+        // Single batch API call for all tables in the document
+        aiTitlesBatch = await CaptionService.generateBatchAiCaptionTitles(tablesTextList, aiConfig.apiKey, aiConfig.model);
+      }
+
+      // Tahap 2: Sisipkan Caption pada masing-masing tabel
       for (let i = 0; i < tables.items.length; i++) {
         const table = tables.items[i];
         
@@ -193,7 +244,6 @@ export class CaptionService {
         const docUpToTable = startRange.expandTo(tableRange);
         docUpToTable.load("text");
 
-        // Ambil sampel font dari paragraf tabel / sekitar
         const parentParagraph = tableRange.paragraphs.getFirst();
         parentParagraph.load("font/name, font/size");
 
@@ -221,14 +271,11 @@ export class CaptionService {
           endOfLabel.insertText("1", Word.InsertLocation.after);
         }
 
-        // Jika AI Config tersedia, buatkan deskripsi otomatis dari isi tabel
-        if (aiConfig && aiConfig.apiKey && table.values) {
-          const tableText = table.values.map(row => row.join(" | ")).join("\n");
-          const aiTitle = await CaptionService.generateAiCaptionTitle(tableText, aiConfig.apiKey, aiConfig.model);
-          if (aiTitle) {
-            const afterSeqRange = insertedParagraph.getRange("End");
-            afterSeqRange.insertText(` ${aiTitle}`, Word.InsertLocation.after);
-          }
+        // Sisipkan deskripsi AI yang didapatkan dari batch result
+        const aiTitle = aiTitlesBatch[i];
+        if (aiTitle) {
+          const afterSeqRange = insertedParagraph.getRange("End");
+          afterSeqRange.insertText(` ${aiTitle}`, Word.InsertLocation.after);
         }
 
         processedCount++;
