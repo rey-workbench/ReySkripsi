@@ -148,7 +148,7 @@ export class CaptionService {
   }
 
   /**
-   * Menyisipkan Caption dengan Field Asli Word (SEQ Field) serta pengondisian Bold, Italic, Alignment, & Font Size.
+   * Menyisipkan Caption dengan Field Asli Word (SEQ Field) dan font default Times New Roman.
    */
   public static async insertCaptionForSelection(
     label: 'Tabel' | 'Gambar', 
@@ -167,14 +167,15 @@ export class CaptionService {
       documentUpToCursor.load("text");
       
       const parentParagraph = selection.paragraphs.getFirst();
-      parentParagraph.load("font/name, font/size");
+      parentParagraph.load("font/size");
 
       await context.sync();
 
       const currentChapter = this.extractChapterNumber(documentUpToCursor.text);
       const labelPrefix = `${label} ${currentChapter}. `;
 
-      const targetFontName = parentParagraph.font.name || "Times New Roman";
+      // Default font diset wajib ke Times New Roman standar skripsi
+      const targetFontName = "Times New Roman";
       const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
 
       const insertLocation = label === 'Tabel' ? Word.InsertLocation.before : Word.InsertLocation.after;
@@ -196,7 +197,9 @@ export class CaptionService {
 
       if (captionTitle) {
         const afterSeqRange = insertedParagraph.getRange("End");
-        afterSeqRange.insertText(` ${captionTitle}`, Word.InsertLocation.after);
+        const addedTitleRange = afterSeqRange.insertText(` ${captionTitle}`, Word.InsertLocation.after);
+        // Pastikan seluruh teks caption baru juga diset Times New Roman
+        addedTitleRange.font.name = targetFontName;
       }
 
       await context.sync();
@@ -207,7 +210,7 @@ export class CaptionService {
   }
 
   /**
-   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field) & BATCH PROMPT AI (1x Panggilan API).
+   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field) & font Times New Roman.
    */
   public static async autoCaptionAllTables(
     options?: ICaptionStyleOptions,
@@ -250,14 +253,15 @@ export class CaptionService {
         docUpToTable.load("text");
 
         const parentParagraph = tableRange.paragraphs.getFirst();
-        parentParagraph.load("font/name, font/size");
+        parentParagraph.load("font/size");
 
         await context.sync();
 
         const chapter = this.extractChapterNumber(docUpToTable.text);
         const labelPrefix = `Tabel ${chapter}. `;
 
-        const targetFontName = parentParagraph.font.name || "Times New Roman";
+        // Default font diset wajib ke Times New Roman standar skripsi
+        const targetFontName = "Times New Roman";
         const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
 
         const insertedParagraph = table.insertParagraph(labelPrefix, Word.InsertLocation.before);
@@ -279,7 +283,8 @@ export class CaptionService {
         const aiTitle = aiTitlesBatch[i];
         if (aiTitle) {
           const afterSeqRange = insertedParagraph.getRange("End");
-          afterSeqRange.insertText(` ${aiTitle}`, Word.InsertLocation.after);
+          const addedTitleRange = afterSeqRange.insertText(` ${aiTitle}`, Word.InsertLocation.after);
+          addedTitleRange.font.name = targetFontName;
         }
 
         processedCount++;
