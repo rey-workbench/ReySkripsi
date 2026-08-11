@@ -88,24 +88,38 @@ export class CaptionService {
     let contextText = "";
 
     await Word.run(async (context) => {
-      const selection = context.document.getSelection();
-      const parentPara = selection.paragraphs.getFirst();
-      parentPara.load("text");
-      
-      const prevPara = parentPara.getPreviousOrNullObject();
-      prevPara.load("text, isNullObject");
-      
-      const nextPara = parentPara.getNextOrNullObject();
-      nextPara.load("text, isNullObject");
-      
-      await context.sync();
+      try {
+        const selection = context.document.getSelection();
+        const paragraphs = selection.paragraphs;
+        paragraphs.load("items/text");
+        await context.sync();
 
-      const texts: string[] = [];
-      if (parentPara.text && parentPara.text.trim()) texts.push(parentPara.text.trim());
-      if (!prevPara.isNullObject && prevPara.text && prevPara.text.trim()) texts.push(prevPara.text.trim());
-      if (!nextPara.isNullObject && nextPara.text && nextPara.text.trim()) texts.push(nextPara.text.trim());
+        if (paragraphs.items.length > 0) {
+          const parentPara = paragraphs.items[0];
+          const texts: string[] = [];
+          if (parentPara.text && parentPara.text.trim()) {
+            texts.push(parentPara.text.trim());
+          }
 
-      contextText = texts.join(" | ");
+          const prevPara = parentPara.getPreviousOrNullObject();
+          prevPara.load("text, isNullObject");
+          const nextPara = parentPara.getNextOrNullObject();
+          nextPara.load("text, isNullObject");
+          
+          await context.sync();
+
+          if (!prevPara.isNullObject && prevPara.text && prevPara.text.trim()) {
+            texts.push(prevPara.text.trim());
+          }
+          if (!nextPara.isNullObject && nextPara.text && nextPara.text.trim()) {
+            texts.push(nextPara.text.trim());
+          }
+
+          contextText = texts.join(" | ");
+        }
+      } catch (e) {
+        console.warn("Gagal membaca konteks gambar:", e);
+      }
     });
 
     return contextText;
