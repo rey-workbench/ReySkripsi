@@ -215,12 +215,12 @@ export class CaptionService {
 
       if (searchResults.items.length > 0) {
         const headerItem = searchResults.items[0];
-        const nextPara = headerItem.getNext();
+        const headerRange = headerItem.getRange("End");
         
         // Cek apakah di bawahnya sudah ada TOC / TOF Field
         if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
           const tofInstruction = `TOC \\h \\z \\c "${label}"`;
-          const insertedField = nextPara.insertField(Word.InsertLocation.after, Word.FieldType.toc, tofInstruction, true);
+          const insertedField = headerRange.insertField(Word.InsertLocation.after, Word.FieldType.toc, tofInstruction, true);
           insertedField.result.font.name = "Times New Roman";
           await context.sync();
         }
