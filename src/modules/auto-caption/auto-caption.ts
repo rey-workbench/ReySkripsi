@@ -19,7 +19,7 @@ export class AutoCaptionModule implements IModule {
   public get htmlContent(): string {
     return `
       <p class="ms-font-s" style="margin-bottom: 16px; color: #4b5563;">
-        Penyisipan caption otomatis untuk Tabel & Gambar berdasar nomor BAB (Contoh: <b>Tabel 1.1</b>, <b>Tabel 1.2</b> pada BAB I).
+        Penyisipan caption otomatis untuk Tabel & Gambar berdasar nomor BAB (Contoh: <b>Tabel 1.1</b>, <b>Gambar 3.1</b> pada BAB III).
       </p>
 
       ${Dropdown.render({
@@ -70,7 +70,7 @@ export class AutoCaptionModule implements IModule {
         ${Textarea.render({
           id: 'caption-title-input',
           label: 'Judul / Deskripsi Manual (Atau dikosongi untuk AI)',
-          placeholder: 'Contoh: Hasil Pengujian Akurasi Model',
+          placeholder: 'Contoh: Tampilan Antarmuka Website',
           rows: 2
         })}
       </div>
@@ -133,11 +133,17 @@ export class AutoCaptionModule implements IModule {
     try {
       ToastService.showProgress("Membuat caption...", 30);
 
-      if (apiKey && !title && label === 'Tabel') {
-        ToastService.showProgress(`AI menganalisis & merangkum tabel (maks 4 kata)...`, 60);
-        const tableText = await CaptionService.getSelectedTableDataText();
-        if (tableText) {
-          title = await CaptionService.generateAiCaptionTitle(tableText, apiKey, model);
+      if (apiKey && !title) {
+        ToastService.showProgress(`AI menganalisis & merangkum ${label.toLowerCase()} (maks 4 kata)...`, 60);
+        let contextText = "";
+        if (label === 'Tabel') {
+          contextText = await CaptionService.getSelectedTableDataText();
+        } else {
+          contextText = await CaptionService.getSelectedImageDataText();
+        }
+
+        if (contextText) {
+          title = await CaptionService.generateAiCaptionTitle(contextText, apiKey, label, model);
         }
       }
 

@@ -68,7 +68,6 @@ export class CaptionService {
       if (!parentTable.isNullObject && parentTable.values) {
         tableText = parentTable.values.map((row: string[]) => row.join(" | ")).join("\n");
       } else {
-        // Jika kursor tepat di atas tabel (sebelum tabel), ambil tabel setelah kursor
         const nextPara = selection.paragraphs.getFirst().getNext();
         const nextTable = nextPara.parentTableOrNullObject;
         nextTable.load("isNullObject, values");
@@ -83,18 +82,49 @@ export class CaptionService {
   }
 
   /**
-   * Menghasilkan deskripsi caption ringkas (maksimal 4 kata) menggunakan AI berdasarkan data tabel.
+   * Mengambil teks paragraf di dekat Gambar (InlinePicture/Shape) untuk diringkas AI.
+   */
+  public static async getSelectedImageDataText(): Promise<string> {
+    let contextText = "";
+
+    await Word.run(async (context) => {
+      const selection = context.document.getSelection();
+      const parentPara = selection.paragraphs.getFirst();
+      parentPara.load("text");
+      
+      const prevPara = parentPara.getPreviousOrNullObject();
+      prevPara.load("text, isNullObject");
+      
+      const nextPara = parentPara.getNextOrNullObject();
+      nextPara.load("text, isNullObject");
+      
+      await context.sync();
+
+      const texts: string[] = [];
+      if (parentPara.text && parentPara.text.trim()) texts.push(parentPara.text.trim());
+      if (!prevPara.isNullObject && prevPara.text && prevPara.text.trim()) texts.push(prevPara.text.trim());
+      if (!nextPara.isNullObject && nextPara.text && nextPara.text.trim()) texts.push(nextPara.text.trim());
+
+      contextText = texts.join(" | ");
+    });
+
+    return contextText;
+  }
+
+  /**
+   * Menghasilkan deskripsi caption ringkas (maksimal 4 kata) menggunakan AI berdasarkan data tabel / gambar.
    */
   public static async generateAiCaptionTitle(
-    tableDataText: string, 
+    contextDataText: string, 
     apiKey: string, 
+    label: 'Tabel' | 'Gambar' = 'Tabel',
     model: AiModel = DEFAULT_AI_MODEL
   ): Promise<string> {
-    if (!tableDataText || !tableDataText.trim()) {
+    if (!contextDataText || !contextDataText.trim()) {
       return "";
     }
 
-    const prompt = `Berikut adalah data tabel dari dokumen skripsi/ilmiah:\n\n${tableDataText.slice(0, 1500)}\n\nBuatkan judul/deskripsi caption ringkas untuk tabel ini dalam bahasa Indonesia. SYARAT MUTLAK: Maksimal 4 kata, tanpa kata 'Tabel', tanpa tanda petik, singkat, padat, dan jelas. Contoh: Hasil Pengujian Akurasi Model`;
+    const prompt = `Berikut adalah data/konteks ${label.toLowerCase()} dari dokumen skripsi/ilmiah:\n\n${contextDataText.slice(0, 1500)}\n\nBuatkan judul/deskripsi caption ringkas untuk ${label.toLowerCase()} ini dalam bahasa Indonesia. SYARAT MUTLAK: Maksimal 4 kata, tanpa kata '${label}', tanpa tanda petik, singkat, padat, dan jelas. Contoh: Hasil Pengujian Akurasi Model`;
     
     try {
       const result = await AiOrchestrator.generateResponse(prompt, apiKey, model);
@@ -112,7 +142,6 @@ export class CaptionService {
 
   /**
    * Menghasilkan ringkasan deskripsi judul untuk BANYAK TABEL Sekaligus dalam 1x panggilan API (Batch Prompting).
-   * Mencegah HTTP 429 Too Many Requests.
    */
   public static async generateBatchAiCaptionTitles(
     tablesDataTextList: string[], 
@@ -148,7 +177,59 @@ export class CaptionService {
   }
 
   /**
-   * Menyisipkan Caption dengan Field Asli Word (SEQ Field) dan font default Times New Roman.
+   * Mendeteksi/Mencari Halaman Awal untuk DAFTAR TABEL / DAFTAR GAMBAR / DAFTAR ISI,
+   * lalu meng-update Field TOC/TOF yang ada atau menyisipkan TOC/TOF Field resmi Word.
+   */
+  public static async updateOrCreateTableOfFigures(label: 'Tabel' | 'Gambar'): Promise<void> {
+    await Word.run(async (context) => {
+      const body = context.document.body;
+      
+      // Update seluruh Field di dokumen (jika TOC/TOF sudah ada)
+      if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
+        try {
+          const fields = body.fields;
+          fields.load("items/code");
+          await context.sync();
+
+          let hasUpdated = false;
+          for (const field of fields.items) {
+            const code = (field.code || "").toUpperCase();
+            if (code.includes("TOC") || code.includes("SEQ")) {
+              field.result.font.name = "Times New Roman";
+              hasUpdated = true;
+            }
+          }
+          if (hasUpdated) {
+            await context.sync();
+          }
+        } catch (e) {
+          console.warn("Gagal update fields:", e);
+        }
+      }
+
+      // Cari Paragraf Judul "DAFTAR TABEL" atau "DAFTAR GAMBAR" di halaman awal
+      const targetHeader = label === 'Tabel' ? "DAFTAR TABEL" : "DAFTAR GAMBAR";
+      const searchResults = body.search(targetHeader, { matchCase: false, matchWholeWord: false });
+      searchResults.load("items");
+      await context.sync();
+
+      if (searchResults.items.length > 0) {
+        const headerItem = searchResults.items[0];
+        const nextPara = headerItem.getNext();
+        
+        // Cek apakah di bawahnya sudah ada TOC / TOF Field
+        if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
+          const tofInstruction = `TOC \\h \\z \\c "${label}"`;
+          const insertedField = nextPara.insertField(Word.InsertLocation.after, Word.FieldType.toc, tofInstruction, true);
+          insertedField.result.font.name = "Times New Roman";
+          await context.sync();
+        }
+      }
+    });
+  }
+
+  /**
+   * Menyisipkan Caption dengan Field Asli Word (SEQ Field) standar Table of Figures Word.
    */
   public static async insertCaptionForSelection(
     label: 'Tabel' | 'Gambar', 
@@ -172,9 +253,8 @@ export class CaptionService {
       await context.sync();
 
       const currentChapter = this.extractChapterNumber(documentUpToCursor.text);
-      const labelPrefix = `${label} ${currentChapter}. `;
+      const labelPrefix = `${label} ${currentChapter}.`;
 
-      // Default font diset wajib ke Times New Roman standar skripsi
       const targetFontName = "Times New Roman";
       const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
 
@@ -186,11 +266,12 @@ export class CaptionService {
       insertedParagraph.font.size = targetFontSize;
       insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
 
-      const seqFieldName = `${label}_Bab${currentChapter}`;
+      // Menggunakan nama SEQ standar label "Tabel" atau "Gambar" agar terbaca oleh Table of Figures Word (TOC \c "Tabel")
+      const seqFieldName = label;
       const endOfLabel = insertedParagraph.getRange("End");
 
       if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
-        endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, seqFieldName, true);
+        endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `${seqFieldName} \\s ${currentChapter}`, true);
       } else {
         endOfLabel.insertText("1", Word.InsertLocation.after);
       }
@@ -198,7 +279,6 @@ export class CaptionService {
       if (captionTitle) {
         const afterSeqRange = insertedParagraph.getRange("End");
         const addedTitleRange = afterSeqRange.insertText(` ${captionTitle}`, Word.InsertLocation.after);
-        // Pastikan seluruh teks caption baru juga diset Times New Roman
         addedTitleRange.font.name = targetFontName;
       }
 
@@ -206,11 +286,14 @@ export class CaptionService {
       captionTextInserted = `${label} ${currentChapter}.[SEQ ${seqFieldName}] ${captionTitle}`;
     });
 
+    // Otomatis cari & update / buatkan Daftar Tabel atau Daftar Gambar di halaman awal
+    await this.updateOrCreateTableOfFigures(label);
+
     return captionTextInserted;
   }
 
   /**
-   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field) & font Times New Roman.
+   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field) & update Daftar Tabel.
    */
   public static async autoCaptionAllTables(
     options?: ICaptionStyleOptions,
@@ -258,9 +341,8 @@ export class CaptionService {
         await context.sync();
 
         const chapter = this.extractChapterNumber(docUpToTable.text);
-        const labelPrefix = `Tabel ${chapter}. `;
+        const labelPrefix = `Tabel ${chapter}.`;
 
-        // Default font diset wajib ke Times New Roman standar skripsi
         const targetFontName = "Times New Roman";
         const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
 
@@ -271,11 +353,11 @@ export class CaptionService {
         insertedParagraph.font.size = targetFontSize;
         insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
 
-        const seqFieldName = `Tabel_Bab${chapter}`;
+        const seqFieldName = "Tabel";
         const endOfLabel = insertedParagraph.getRange("End");
 
         if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
-          endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, seqFieldName, true);
+          endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `${seqFieldName} \\s ${chapter}`, true);
         } else {
           endOfLabel.insertText("1", Word.InsertLocation.after);
         }
@@ -292,6 +374,9 @@ export class CaptionService {
 
       await context.sync();
     });
+
+    // Otomatis update/buatkan Daftar Tabel
+    await this.updateOrCreateTableOfFigures('Tabel');
 
     return processedCount;
   }
