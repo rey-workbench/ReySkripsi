@@ -5,8 +5,6 @@ import { Stemmer } from 'sastrawijs';
 export class DictionaryService {
     private static kbbiDict: Set<string> | null = null;
     private static stemmer = new Stemmer();
-    // Cache hasil stemming per kata mentah agar tidak meng-stem ulang kata yang sama
-    // berulang kali pada dokumen besar (perf kilas baik untuk skripsi ribuan kata unik).
     private static stemCache = new Map<string, string>();
     private static foreignCache = new Map<string, boolean>();
 
@@ -23,13 +21,8 @@ export class DictionaryService {
         }
     }
 
-    /**
-     * Membersihkan kata dan memecah istilah bersufiks/berslash/hyphen
-     * (mis. "pasca-pandemi", "ekstrakurikuler") menjadi token per bagian.
-     * Mengembalikan array token huruf saja.
-     */
     private static tokenizeWord(word: string): string[] {
-        // Pecah berdasarkan tanda hubung, garis miring, spasi.
+        // Pecah istilah bersufiks/berslash/hyphen per bagian (mis. "pasca-pandemi").
         const parts = word.split(/[-\/\s]+/);
         const tokens: string[] = [];
         for (const part of parts) {
@@ -62,8 +55,7 @@ export class DictionaryService {
             return false;
         }
 
-        // Sebuah istilah dianggap asing bila SALAH SATU bagiannya tidak ada di KBBI.
-        // Ini menangkap kata majemuk/berslash yang selama ini luput.
+        // Istilah dianggap asing bila salah satu bagiannya tidak ada di KBBI.
         for (const token of tokens) {
             let baseWord: string;
             const cached = this.stemCache.get(token);
@@ -84,9 +76,8 @@ export class DictionaryService {
     }
 
     /**
-     * Ekstraksi kata asing. Bila matchCase=false, hasil selalu huruf kecil.
-     * Kesalahan saat memuat kamus melempar error nyata, tidak disamarkan
-     * menjadi pseudo-kata "debug_api_error_...".
+     * Ekstraksi kata asing; hasil selalu huruf kecil bila matchCase=false.
+     * Kesalahan memuat kamus melempar error nyata, bukan pseudo-kata.
      */
     public static async extractForeignWordsFromText(text: string, matchCase: boolean = false): Promise<Set<string>> {
         const foreignWords = new Set<string>();
@@ -101,7 +92,6 @@ export class DictionaryService {
 
         for (const word of uniqueWords) {
             if (this.isForeignWord(word)) {
-                // Simpan token per bagian agar search kata sesuai istilah utuh.
                 foreignWords.add(word);
             }
         }

@@ -81,7 +81,6 @@ export class BatchManualModule implements IModule {
             const textarea = document.getElementById("batch-input") as HTMLTextAreaElement;
             const currentVal = textarea.value.trim();
             
-            // Only append words that aren't already in the textarea
             const existingWords = currentVal.split(/[\n,]+/).map(w => w.trim().toLowerCase());
             const newWords = uniqueWordsArray.filter(w => !existingWords.includes(w));
 

@@ -1,5 +1,5 @@
-import styles from '../../components/css/modal.css';
-import btnStyles from '../../components/css/button.css';
+import styles from '@/core/components/css/modal.css';
+import btnStyles from '@/core/components/css/button.css';
 import { DOMService } from '@/core/services/ui/dom-service';
 
 export class ModalService {
@@ -22,7 +22,7 @@ export class ModalService {
         const btnConfirm = document.getElementById("modal-btn-confirm");
 
         if (!modal || !modalMessage || !btnCancel || !btnConfirm) {
-            resolve(true); // Fallback if UI is missing
+            resolve(true);
             return;
         }
 

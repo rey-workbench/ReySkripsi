@@ -1,4 +1,4 @@
-import styles from './css/card.css';
+import styles from '@/core/components/css/card.css';
 
 export interface CardProps {
     id: string;

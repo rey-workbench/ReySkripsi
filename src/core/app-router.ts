@@ -54,7 +54,6 @@ export class AppRouter {
             this.modules.forEach(mod => {
                 mod.onInit();
                 
-                // Bind the back button by finding the .btn-back class inside this module
                 const moduleContainer = document.getElementById(mod.id);
                 if (moduleContainer) {
                     const backBtn = moduleContainer.querySelector('[data-back-button="true"]');

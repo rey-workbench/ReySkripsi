@@ -17,9 +17,6 @@ export class CaptionService {
     return Word.Alignment.centered;
   }
 
-  /**
-   * Mengambil isi teks data dari tabel terpilih/terdekat untuk diringkas AI.
-   */
   public static async getSelectedTableDataText(): Promise<string> {
     let tableText = "";
 
@@ -45,9 +42,6 @@ export class CaptionService {
     return tableText;
   }
 
-  /**
-   * Mengambil teks paragraf di dekat Gambar (InlinePicture/Shape) untuk diringkas AI.
-   */
   public static async getSelectedImageDataText(): Promise<string> {
     let contextText = "";
 
@@ -89,9 +83,6 @@ export class CaptionService {
     return contextText;
   }
 
-  /**
-   * Menghasilkan deskripsi caption ringkas (maksimal 4 kata) menggunakan AI berdasarkan data tabel / gambar.
-   */
   public static async generateAiCaptionTitle(
     contextDataText: string, 
     apiKey: string, 
@@ -113,9 +104,6 @@ export class CaptionService {
     }
   }
 
-  /**
-   * Menghasilkan ringkasan deskripsi judul untuk BANYAK TABEL Sekaligus dalam 1x panggilan API (Batch Prompting).
-   */
   public static async generateBatchAiCaptionTitles(
     tablesDataTextList: string[], 
     apiKey: string, 
@@ -144,15 +132,10 @@ export class CaptionService {
     return new Array(tablesDataTextList.length).fill("");
   }
 
-  /**
-   * Mendeteksi/Mencari Halaman Awal untuk DAFTAR TABEL / DAFTAR GAMBAR / DAFTAR ISI,
-   * lalu meng-update Field TOC/TOF yang ada atau menyisipkan TOC/TOF Field resmi Word.
-   */
   public static async updateOrCreateTableOfFigures(label: 'Tabel' | 'Gambar'): Promise<void> {
     await Word.run(async (context) => {
       const body = context.document.body;
       
-      // Cukup update seluruh Field yang ada di dokumen (TOC / TOF / SEQ)
       if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
         try {
           const fields = body.fields;
@@ -173,9 +156,6 @@ export class CaptionService {
     });
   }
 
-  /**
-   * Menyisipkan Caption dengan Field Asli Word (SEQ Field) standar Table of Figures Word.
-   */
   public static async insertCaptionForSelection(
     label: 'Tabel' | 'Gambar', 
     captionTitle: string,
@@ -208,15 +188,11 @@ export class CaptionService {
       captionTextInserted = `${labelPrefix} ${captionTitle}`;
     });
 
-    // Otomatis cari & update / buatkan Daftar Tabel atau Daftar Gambar di halaman awal
     await this.updateOrCreateTableOfFigures(label);
 
     return captionTextInserted;
   }
 
-  /**
-   * Auto caption untuk semua Tabel di dokumen menggunakan Native Word Field (SEQ Field) & update Daftar Tabel.
-   */
   public static async autoCaptionAllTables(
     options?: ICaptionStyleOptions,
     aiConfig?: { apiKey: string, model: AiModel }
@@ -274,16 +250,12 @@ export class CaptionService {
       await context.sync();
     });
 
-    // Otomatis update/buatkan Daftar Tabel
     await this.updateOrCreateTableOfFigures('Tabel');
 
     return processedCount;
   }
 
-  /**
-   * Format paragraf caption yang baru disisipkan: font, alignment, SEQ Field,
-   * dan judul. Dipakai bersama oleh insertCaptionForSelection & autoCaptionAllTables.
-   */
+  // Format paragraf caption: font, alignment, SEQ Field, dan judul.
   private static applyCaptionFormatting(
     insertedParagraph: Word.Paragraph,
     label: 'Tabel' | 'Gambar',
@@ -300,8 +272,6 @@ export class CaptionService {
     insertedParagraph.font.name = targetFontName;
     insertedParagraph.font.size = targetFontSize;
     insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
-
-    // SEQ field me-render angka urut (1, 2, dst). Tidak perlu menambahkan angka hardcoded lagi.
     const endOfLabel = insertedParagraph.getRange("End");
 
     if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {

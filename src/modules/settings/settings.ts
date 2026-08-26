@@ -43,7 +43,6 @@ export class SettingsModule implements IModule {
     const nvidiaInput = document.getElementById("settings-nvidia-key") as HTMLInputElement;
     const btnSave = document.getElementById("settings-btn-save");
 
-    // Load saved keys dari StorageService (IndexedDB)
     if (geminiInput) geminiInput.value = await StorageService.getItem("gemini_api_key");
     if (nvidiaInput) nvidiaInput.value = await StorageService.getItem("nvidia_api_key");
 

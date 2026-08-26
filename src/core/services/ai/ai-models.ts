@@ -1,6 +1,3 @@
-/**
- * Centralized Enum dan Metadata untuk seluruh Model AI (Gemini 3 Family & NVIDIA)
- */
 export enum AiModel {
   GEMINI_3_FLASH = "gemini-3-flash-preview",
   GEMINI_3_1_PRO = "gemini-3.1-pro-preview",

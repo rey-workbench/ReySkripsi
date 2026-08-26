@@ -10,9 +10,6 @@
  * tampil sebagai plain-text mentah di localStorage / editor nilai.
  */
 
-// -----------------------------------------------------------------------------
-// Primitif WebCrypto AES-GCM
-// -----------------------------------------------------------------------------
 const keyNamespace = "ReySkripsi-key-v1";
 const ivLength = 12; // AES-GCM recommended IV length (96 bit)
 
@@ -107,9 +104,7 @@ async function decryptWithCrypto(encrypted: string): Promise<string | null> {
   }
 }
 
-// -----------------------------------------------------------------------------
-// Fallback: obfuscation ringan (bukan enkripsi) untuk lingkungan tanpa WebCrypto
-// -----------------------------------------------------------------------------
+// Fallback: obfuscation ringan (bukan enkripsi) untuk lingkungan tanpa WebCrypto.
 function obfuscate(text: string): string {
   if (!text) return "";
   try {
@@ -130,9 +125,6 @@ function deobfuscate(encryptedText: string): string {
   }
 }
 
-// -----------------------------------------------------------------------------
-// IndexedDB
-// -----------------------------------------------------------------------------
 const DB_NAME = "ReySkripsiSecureDB";
 const STORE_NAME = "secure_keys";
 const DB_VERSION = 2;
@@ -186,14 +178,7 @@ async function decryptValue(encrypted: string): Promise<string> {
   return deobfuscate(raw);
 }
 
-// -----------------------------------------------------------------------------
-// API publik
-// -----------------------------------------------------------------------------
 export class StorageService {
-  /**
-   * Menyimpan data sensitif secara terenkripsi (AES-GCM) ke IndexedDB lokal.
-   * Menghapus sisa data lama dari localStorage jika sebelumnya tersimpan di sana.
-   */
   public static async setItem(key: string, value: string): Promise<void> {
     try {
       localStorage.removeItem(key);
@@ -216,16 +201,12 @@ export class StorageService {
       }
     }
 
-    // Fallback ke Office.context.roamingSettings jika IndexedDB tidak tersedia
     if (Office?.context?.roamingSettings) {
       Office.context.roamingSettings.set(key, encryptedVal);
       Office.context.roamingSettings.saveAsync();
     }
   }
 
-  /**
-   * Mengambil data sensitif yang tersimpan.
-   */
   public static async getItem(key: string): Promise<string> {
     // Migrasikan nilai lama dari localStorage bila ada.
     let legacyVal: string | null = null;
@@ -259,7 +240,6 @@ export class StorageService {
       }
     }
 
-    // Fallback dari Office roamingSettings
     if (Office?.context?.roamingSettings) {
       const encryptedVal = Office.context.roamingSettings.get(key);
       if (encryptedVal) {
@@ -269,9 +249,6 @@ export class StorageService {
     return "";
   }
 
-  /**
-   * Menghapus item dari penyimpanan aman.
-   */
   public static async removeItem(key: string): Promise<void> {
     try { localStorage.removeItem(key); } catch { /* ignore */ }
 

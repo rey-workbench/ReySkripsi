@@ -10,8 +10,6 @@ export class AiProviderFactory {
             return new NvidiaService();
         }
 
-        // Jangan membisu ke Gemini saat model tak dikenal — bisa menyebabkan
-        // error JSON yang membingungkan (model non-Gemini dipanggil ke Gemini).
         throw new Error(`Model AI tidak dikenali: “${model}”. Pilih model dari daftar yang tersedia.`);
     }
 }

@@ -7,7 +7,7 @@
 import { AutoUpdater } from '@/core/services/system/auto-updater';
 import { AppRouter } from '@/core/app-router';
 import { AutoLanguageModule, BatchManualModule, AiChatbotModule, AutoCaptionModule, SettingsModule } from '@/modules/index';
-import './taskpane.css';
+import '@/taskpane/taskpane.css';
 
 Office.onReady((info) => {
   if (info.host === Office.HostType.Word) {
@@ -16,17 +16,14 @@ Office.onReady((info) => {
     
     const app = new AppRouter();
     
-    // Register Modules
     app.register(new AutoCaptionModule());
     app.register(new AutoLanguageModule());
     app.register(new BatchManualModule());
     app.register(new AiChatbotModule());
     app.register(new SettingsModule());
     
-    // Boot up the application
     app.start();
 
-    // Start Auto Updater polling
     new AutoUpdater().start();
   }
 });

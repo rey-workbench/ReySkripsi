@@ -6,7 +6,9 @@
         "targets": {
           "esmodules": true
         },
-        "bugfixes": true
+        "bugfixes": true,
+        "useBuiltIns": "usage",
+        "corejs": 3
       }
     ],
     "@babel/preset-typescript"

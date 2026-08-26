@@ -1,4 +1,4 @@
-import styles from './css/button.css';
+import styles from '@/core/components/css/button.css';
 
 export interface ButtonProps {
     id: string;

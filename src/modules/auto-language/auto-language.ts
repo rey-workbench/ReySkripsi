@@ -48,7 +48,6 @@ export class AutoLanguageModule implements IModule {
         ToastService.hide();
 
         WordService.processWithConfirmation(wholeDocument, async (range, isDryRun, token, onProgress) => {
-          // Extrak teks dari range
           range.load("text");
           await range.context.sync();
           
@@ -56,10 +55,9 @@ export class AutoLanguageModule implements IModule {
           const wordsToMatch = Array.from(foreignWords);
 
           if (wordsToMatch.length === 0) {
-              return 0; // No foreign words found
+              return 0;
           }
 
-          // Gunakan scanner untuk apply
           return await WordScannerService.scanAndFormat(range, wordsToMatch, false, isDryRun, token, onProgress);
         });
     } catch (e) {

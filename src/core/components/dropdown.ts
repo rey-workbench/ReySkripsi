@@ -1,4 +1,4 @@
-import styles from './css/input.css';
+import styles from '@/core/components/css/input.css';
 
 interface DropdownOption {
     value: string;

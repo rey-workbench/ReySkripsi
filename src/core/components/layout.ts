@@ -1,4 +1,4 @@
-import layoutStyles from './css/module-layout.css';
+import layoutStyles from '@/core/components/css/module-layout.css';
 
 export interface LayoutProps {
     id: string;

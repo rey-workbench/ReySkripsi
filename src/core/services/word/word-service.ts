@@ -22,7 +22,6 @@ export class WordService {
       await Word.run(async (context) => {
         ModalService.showProgress("Memindai dokumen...", 0, handleCancel);
         
-        // Phase 1: Dry Run (Count only)
         let totalMatches = 0;
         const progressCallback: TProgressCallback = (percent, msg) => {
            ModalService.showProgress(msg, percent, handleCancel);
@@ -44,7 +43,6 @@ export class WordService {
           return;
         }
 
-        // Phase 2: Confirmation
         const isConfirmed = await ModalService.showConfirmation(`Ditemukan ${totalMatches} kata/kalimat yang cocok. Lanjutkan memiringkan?`);
         
         if (!isConfirmed) {
@@ -52,7 +50,6 @@ export class WordService {
           return;
         }
 
-        // Phase 3: Execution
         let appliedCount = 0;
         const execRange = await this.getTargetRange(context, wholeDocument);
         if (execRange) {
@@ -77,10 +74,6 @@ export class WordService {
     }
   }
 
-  /**
-   * Menyelesaikan range target (seluruh body atau seleksi).
-   * Mengembalikan null bila seleksi kosong agar fase dibatalkan.
-   */
   private static async getTargetRange(
     context: Word.RequestContext,
     wholeDocument: boolean

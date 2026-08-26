@@ -47,13 +47,11 @@ export class AiChatbotModule implements IModule {
                 
                 <div style="position: relative; display: flex; flex-direction: column; background: #f3f2f1; border-radius: 16px; padding: 8px 12px; border: 1px solid #e2e8f0; gap: 8px;">
                     
-                    <!-- Row 1: Input and Plus button -->
                     <div style="display: flex; align-items: center; width: 100%;">
                         <div id="ai-plus-btn" style="display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 4px; margin-right: 8px; border-radius: 50%; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
                             <i class="ms-Icon ms-Icon--Add" style="font-size: 16px; color: #6b7280;"></i>
                         </div>
                         
-                        <!-- Popup Menu -->
                         <div id="ai-plus-menu" style="display: none; position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 8px; min-width: 220px; z-index: 100;">
                             <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
                                 <i class="ms-Icon ms-Icon--Document" style="font-size: 16px; color: #6b7280;"></i>
@@ -78,31 +76,25 @@ export class AiChatbotModule implements IModule {
                             </div>
                         </div>
                         
-                        <!-- Skill Badge -->
                         <div id="ai-skill-badge" style="display: none; align-items: center; background: #e0f2fe; color: #0369a1; font-size: 12px; padding: 4px 8px; border-radius: 12px; margin-right: 8px; font-weight: 600; gap: 4px;">
                             <span id="ai-skill-text"></span>
                             <i class="ms-Icon ms-Icon--Cancel" id="ai-skill-clear" style="cursor: pointer; font-size: 10px; margin-left: 4px;" title="Hapus"></i>
                         </div>
-                        <!-- Hidden input to store skill context -->
                         <input type="hidden" id="ai-skill-value" value="" />
                         
                         <input type="text" id="ai-chat-input" placeholder="Minta AI..." style="flex: 1; background: transparent; border: none; outline: none; font-size: 14px; padding: 4px 0; color: #111827; min-width: 0;" />
                     </div>
                     
-                    <!-- Row 2: Controls -->
                     <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding-left: 4px;">
                         
-                        <!-- Custom Dropdown Trigger -->
                         <div id="ai-model-trigger" style="display: flex; align-items: center; cursor: pointer; padding: 4px 8px; border-radius: 16px; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
                             <span id="ai-model-display" style="font-size: 12px; color: #6b7280; font-weight: 600; margin-right: 4px;"></span>
                             <i class="ms-Icon ms-Icon--ChevronDown" style="font-size: 10px; color: #6b7280;"></i>
                         </div>
                         
-                        <!-- Custom Dropdown Menu Dinamis (Di-loop dari AI_MODEL_LIST) -->
                         <div id="ai-model-menu" style="display: none; position: absolute; bottom: 100%; left: 12px; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 4px 0; min-width: 220px; z-index: 100; max-height: 250px; overflow-y: auto;">
                             ${modelItemsHtml}
                         </div>
-                        <!-- Hidden input to store selected model -->
                         <input type="hidden" id="ai-model-select" value="${DEFAULT_AI_MODEL}" />
     
                         <button id="ai-btn-send" style="background: #0078D4; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; color: white; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,120,212,0.2);" onmouseover="this.style.background='#005a9e'" onmouseout="this.style.background='#0078D4'">
@@ -147,7 +139,6 @@ export class AiChatbotModule implements IModule {
             });
         }
         
-        // Custom Model Dropdown Logic
         if (modelTrigger && modelMenu) {
             modelTrigger.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -171,7 +162,6 @@ export class AiChatbotModule implements IModule {
             });
         }
         
-        // Plus Menu Logic
         if (plusBtn && plusMenu) {
             plusBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -179,7 +169,6 @@ export class AiChatbotModule implements IModule {
                 if (modelMenu) modelMenu.style.display = "none";
             });
             
-            // Handle menu item clicks to set skill badge
             const menuItems = plusMenu.querySelectorAll('.ai-menu-item');
             menuItems.forEach(item => {
                 item.addEventListener('click', (e) => {
@@ -195,7 +184,6 @@ export class AiChatbotModule implements IModule {
             });
         }
         
-        // Clear skill logic
         if (skillClear && skillBadge && skillValue) {
             skillClear.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -204,13 +192,11 @@ export class AiChatbotModule implements IModule {
             });
         }
         
-        // Hide menus when clicking outside
         document.addEventListener("click", () => {
             if (plusMenu) plusMenu.style.display = "none";
             if (modelMenu) modelMenu.style.display = "none";
         });
 
-        // Event delegation for citations
         const historyContainer = document.getElementById("ai-chat-history");
         if (historyContainer) {
             historyContainer.addEventListener("click", (e) => {

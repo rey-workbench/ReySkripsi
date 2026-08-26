@@ -15,7 +15,6 @@ export class NvidiaService implements IAiService {
 
             messages.push({ role: "user", content: prompt });
 
-            // Pastikan format model sesuai dengan yang dibutuhkan NVIDIA API
             const fullModelId = model === 'minimax-m3' ? 'minimaxai/minimax-m3' : model;
 
             const payload = {

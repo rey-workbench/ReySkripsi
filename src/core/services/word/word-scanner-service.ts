@@ -2,9 +2,6 @@
 import { ENV } from '@/config';
 import { ICancellationToken, TProgressCallback } from '@/core/interfaces';
 
-// Bentuk struktural minimal dari hasil `range.search(...)`. Tidak bergantung pada
-// member `Word.SearchResultCollection` agar tetap compile walau @types/office-js
-// belum tersedia, sekaligus menjaga null-safety properti yang kita pakai.
 type SearchHit = {
   style?: string;
   font: { italic: boolean };
@@ -15,10 +12,6 @@ type SearchHit = {
 type SearchCollectionLike = { items: SearchHit[] };
 
 export class WordScannerService {
-    /**
-     * Scans the range for specific words and formats them, skipping footnotes and citations.
-     * @returns number of matches found and formatted
-     */
     public static async scanAndFormat(
         range: Word.Range | Word.Body | Word.Paragraph, 
         wordsToMatch: string[], 
@@ -34,8 +27,6 @@ export class WordScannerService {
         let searchCount = 0;
         let formatCount = 0;
 
-        // BATCH: proses per kelompok kata agar `context.sync()` tidak dipanggil satu
-        // kali dengan hasil raksasa (mencegah timeout Office add-in pd dok. besar).
         const SEARCH_BATCH_SIZE = 25;
 
         for (let batchStart = 0; batchStart < totalWords; batchStart += SEARCH_BATCH_SIZE) {
@@ -56,7 +47,7 @@ export class WordScannerService {
 
                 searchCount++;
                 if (onProgress && searchCount % 10 === 0) {
-                    const percent = Math.floor((searchCount / totalWords) * 50); // First 50% for searching
+                    const percent = Math.floor((searchCount / totalWords) * 50);
                     onProgress(percent, `Mencari kata: ${searchCount}/${totalWords}`);
                 }
             }
@@ -77,7 +68,6 @@ export class WordScannerService {
                         continue;
                     }
 
-                    // Skip if it is physically inside a footnote/endnote
                     if (item.parentBody && (item.parentBody.type === "Footnote" || item.parentBody.type === "Endnote")) {
                         continue;
                     }
@@ -97,17 +87,16 @@ export class WordScannerService {
 
                 formatCount++;
                 if (onProgress && formatCount % 10 === 0) {
-                    const percent = 50 + Math.floor((formatCount / Math.max(totalWords, 1)) * 50); // Second 50% for formatting
+                    const percent = 50 + Math.floor((formatCount / Math.max(totalWords, 1)) * 50);
                     onProgress(percent, `Memformat kata: ${formatCount}/${totalWords}`);
                 }
             }
         }
 
-        // Flush semua perubahan yang dijadwalkan pada batch terakhir
         if (hasChanges && !isDryRun) {
             await range.context.sync();
 
-            // Tahap post-processing: Hilangkan italic pada field sitasi (Zotero, Mendeley, Word Citation)
+            // Hilangkan italic pada field sitasi (Zotero, Mendeley, Word Citation).
             if (Office.context.requirements.isSetSupported('WordApi', '1.4') && range.fields) {
                 try {
                     const fields = range.fields;
