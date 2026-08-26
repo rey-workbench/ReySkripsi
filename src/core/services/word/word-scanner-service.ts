@@ -1,4 +1,3 @@
-/// <reference types="office-js" />
 import { ENV } from '@/config';
 import { ICancellationToken, TProgressCallback } from '@/core/interfaces';
 
@@ -39,7 +38,6 @@ export class WordScannerService {
             for (const targetWord of batch) {
                 if (cancellationToken?.isCancelled) break;
 
-                // Gunakan hasil pencarian fase dry-run agar tidak mencari ulang saat eksekusi.
                 const cached = searchCache?.get(targetWord);
                 let searchResults: SearchCollectionLike;
                 if (cached) {
@@ -106,7 +104,6 @@ export class WordScannerService {
         if (hasChanges && !isDryRun) {
             await range.context.sync();
 
-            // Hilangkan italic pada field sitasi (Zotero, Mendeley, Word Citation).
             if (Office.context.requirements.isSetSupported('WordApi', '1.4') && range.fields) {
                 try {
                     const fields = range.fields;

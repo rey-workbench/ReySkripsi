@@ -1,4 +1,3 @@
-/// <reference types="office-js" />
 import { WordService } from '@/core/services/word/word-service';
 import { DictionaryService } from '@/core/services/dictionary/dictionary-service';
 import { WordScannerService } from '@/core/services/word/word-scanner-service';

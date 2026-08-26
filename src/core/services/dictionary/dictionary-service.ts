@@ -13,7 +13,6 @@ export class DictionaryService {
         try {
             const res = await fetch(ENV.DICTIONARY_URL);
             if (!res.ok) throw new Error("Gagal memuat kamus offline KBBI");
-            // Format newline-delimited: 1 kata per baris — parse lebih cepat daripada JSON.
             const text = await res.text();
             this.kbbiDict = new Set(
                 text.split("\n").map((w: string) => w.trim().toLowerCase()).filter(Boolean)
@@ -25,7 +24,6 @@ export class DictionaryService {
     }
 
     private static tokenizeWord(word: string): string[] {
-        // Pecah istilah bersufiks/berslash/hyphen per bagian (mis. "pasca-pandemi").
         const parts = word.split(/[-\/\s]+/);
         const tokens: string[] = [];
         for (const part of parts) {
@@ -58,7 +56,6 @@ export class DictionaryService {
             return false;
         }
 
-        // Istilah dianggap asing bila salah satu bagiannya tidak ada di KBBI.
         for (const token of tokens) {
             let baseWord: string;
             const cached = this.stemCache.get(token);
@@ -78,10 +75,6 @@ export class DictionaryService {
         return true;
     }
 
-    /**
-     * Ekstraksi kata asing; hasil selalu huruf kecil bila matchCase=false.
-     * Kesalahan memuat kamus melempar error nyata, bukan pseudo-kata.
-     */
     public static async extractForeignWordsFromText(text: string, matchCase: boolean = false): Promise<Set<string>> {
         const foreignWords = new Set<string>();
         if (!text) return foreignWords;

@@ -1,7 +1,8 @@
-/// <reference types="office-js" />
 import { AiOrchestrator } from '@/core/services/ai/ai-orchestrator';
 import { AiModel, DEFAULT_AI_MODEL } from '@/core/services/ai/ai-models';
 import { cleanCaptionTitle, extractChapterNumber, parseAiCaptionTitles } from '@/core/utils/caption';
+
+export type CaptionLabel = 'Tabel' | 'Gambar';
 
 export interface ICaptionStyleOptions {
   isBold?: boolean;
@@ -86,7 +87,7 @@ export class CaptionService {
   public static async generateAiCaptionTitle(
     contextDataText: string, 
     apiKey: string, 
-    label: 'Tabel' | 'Gambar' = 'Tabel',
+    label: CaptionLabel = 'Tabel',
     model: AiModel = DEFAULT_AI_MODEL
   ): Promise<string> {
     if (!contextDataText || !contextDataText.trim()) {
@@ -132,7 +133,7 @@ export class CaptionService {
     return new Array(tablesDataTextList.length).fill("");
   }
 
-  public static async updateOrCreateTableOfFigures(label: 'Tabel' | 'Gambar'): Promise<void> {
+  public static async updateOrCreateTableOfFigures(label: CaptionLabel): Promise<void> {
     await Word.run(async (context) => {
       const body = context.document.body;
       
@@ -157,7 +158,7 @@ export class CaptionService {
   }
 
   public static async insertCaptionForSelection(
-    label: 'Tabel' | 'Gambar', 
+    label: CaptionLabel, 
     captionTitle: string,
     options?: ICaptionStyleOptions
   ): Promise<string> {
@@ -255,10 +256,9 @@ export class CaptionService {
     return processedCount;
   }
 
-  // Format paragraf caption: font, alignment, SEQ Field, dan judul.
   private static applyCaptionFormatting(
     insertedParagraph: Word.Paragraph,
-    label: 'Tabel' | 'Gambar',
+    label: CaptionLabel,
     chapter: number,
     title: string,
     options: ICaptionStyleOptions | undefined,

@@ -1,9 +1,8 @@
-import { IAiService } from '@/core/services/ai/iai-service';
+import { AI_NO_RESPONSE_MESSAGE, aiTimeoutMessage, IAiRequestOptions, IAiService, IAiTurn } from '@/core/services/ai/iai-service';
 import { fetchWithTimeout } from '@/core/utils/fetch';
 
 export class NvidiaService implements IAiService {
-    public async generateContent(prompt: string, apiKey: string, model: string, systemInstruction?: string): Promise<string> {
-        // Menggunakan Vercel rewrite (dikonfigurasi di vercel.json) untuk mengatasi CORS
+    public async generateContent(prompt: string, apiKey: string, model: string, systemInstruction?: string, options?: IAiRequestOptions): Promise<IAiTurn> {
         const invokeUrl = "/api/nvidia";
 
         try {
@@ -11,6 +10,10 @@ export class NvidiaService implements IAiService {
 
             if (systemInstruction) {
                 messages.push({ role: "system", content: systemInstruction });
+            }
+
+            for (const m of options?.history ?? []) {
+                messages.push({ role: m.role, content: m.text });
             }
 
             messages.push({ role: "user", content: prompt });
@@ -38,25 +41,21 @@ export class NvidiaService implements IAiService {
 
             if (!response.ok) {
                 let errorMessage = `HTTP ${response.status}`;
-                try {
-                    const errorData = await response.json();
-                    errorMessage += `: ${JSON.stringify(errorData)}`;
-                } catch(e) {
-                    // Ignore JSON parse error on error response
-                }
+                const errorData = await response.json().catch(() => null);
+                if (errorData) errorMessage += `: ${JSON.stringify(errorData)}`;
                 throw new Error(errorMessage);
             }
 
-            const data = await response.json();
+            const data = (await response.json()) as { choices?: { message: { content: string } }[] };
             if (data.choices && data.choices.length > 0) {
-                return data.choices[0].message.content;
+                return { text: data.choices[0].message.content, toolCalls: [] };
             }
             
-            return "Maaf, AI tidak dapat memberikan respons saat ini.";
+            return { text: AI_NO_RESPONSE_MESSAGE, toolCalls: [] };
         } catch (error: unknown) {
             const err = error as { name?: string; message?: string };
             if (err.name === 'AbortError') {
-                throw new Error('Permintaan ke NVIDIA API melebihi waktu tunggu (60 detik).');
+                throw new Error(aiTimeoutMessage('NVIDIA'));
             }
             console.error("NvidiaService error:", error);
             throw new Error(`Terjadi kesalahan: ${err.message || String(error)}`);

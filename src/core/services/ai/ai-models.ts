@@ -19,3 +19,7 @@ export const AI_MODEL_LIST: IAiModelConfig[] = [
 ];
 
 export const DEFAULT_AI_MODEL = AiModel.GEMINI_3_FLASH;
+
+export function isNvidiaModel(model: string): boolean {
+  return model.includes('minimax') || model.startsWith('meta/');
+}

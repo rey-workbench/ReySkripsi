@@ -6,7 +6,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const urlDev = "https://localhost:3000/";
-const urlProd = "https://www.contoso.com/"; // CHANGE THIS TO YOUR PRODUCTION DEPLOYMENT LOCATION
+const urlProd = "https://www.contoso.com/";
 
 async function getHttpsOptions() {
   const httpsOptions = await devCerts.getHttpsServerOptions();
@@ -118,7 +118,7 @@ module.exports = async (env, options) => {
             },
           },
           {
-            from: "package.json", // Dummy source just to trigger transform
+            from: "package.json",
             to: "version.json",
             transform() {
               return JSON.stringify({ version: Date.now().toString() });

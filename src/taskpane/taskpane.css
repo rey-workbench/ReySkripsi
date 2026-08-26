@@ -1,15 +1,13 @@
-/* global Office */
 
 html, body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: #f9fafb; /* gray-50 */
-    color: #1f2937; /* gray-800 */
+    background-color: #f9fafb;
+    color: #1f2937;
 }
 
-/* DASHBOARD SPECIFIC */
 :global(.dashboard-header) {
     padding: 24px 24px 16px;
     background-color: #ffffff;
@@ -25,7 +23,6 @@ html, body {
     padding: 24px;
 }
 
-/* APP SCREENS & NAVIGATION */
 :global(.screen) {
     position: absolute;
     top: 0;
@@ -45,7 +42,6 @@ html, body {
     transform: translateX(0);
 }
 
-/* EXTRACTED INLINE STYLES */
 #app-body {
     height: 100vh;
     overflow: hidden;
@@ -69,7 +65,6 @@ html, body {
     width: 100%;
 }
 
-/* AI CHAT MARKDOWN */
 :global(.ai-message-body) pre {
     background: #1f2937;
     color: #e5e7eb;

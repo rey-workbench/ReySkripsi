@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DictionaryService } from '@/core/services/dictionary/dictionary-service';
 
-// Kamus mini yang merepresentasikan kata Indonesia umum + beberapa akar kata.
 const KBBI_MINI = [
   'data', 'model', 'penelitian', 'hasil', 'uji', 'belajar', 'mesin',
   'sistem', 'informasi', 'akurasi', 'pengujian', 'tabel', 'gambar',
@@ -18,7 +17,6 @@ function stubFetch(words: string[]) {
 
 beforeEach(() => {
   vi.unstubAllGlobals();
-  // Reset singleton kamus agar init() dipanggil ulang per test.
   (DictionaryService as any).kbbiDict = null;
   (DictionaryService as any).stemCache = new Map();
   (DictionaryService as any).foreignCache = new Map();
@@ -41,14 +39,12 @@ describe('DictionaryService.extractForeignWordsFromText', () => {
 
   it('skips very short connector words', async () => {
     stubFetch(KBBI_MINI);
-    // "di", "ke" berpanjang <= MIN_WORD_LENGTH (2) sehingga diabaikan.
     const result = await DictionaryService.extractForeignWordsFromText('di ke', false);
     expect([...result]).toEqual([]);
   });
 
   it('treats hyphenated/slashed terms as tokens', async () => {
     stubFetch(KBBI_MINI);
-    // "pasca-pandemi": pandemi tak ada di kamus mini => dianggap asing.
     const result = await DictionaryService.extractForeignWordsFromText('pasca-pandemi', false);
     expect(result.has('pasca-pandemi')).toBe(true);
   });

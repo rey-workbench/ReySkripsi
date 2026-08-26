@@ -1,8 +1,7 @@
-/// <reference types="office-js" />
-import { CaptionService, ICaptionStyleOptions } from '@/core/services/word/caption-service';
+import { CaptionLabel, CaptionService, ICaptionStyleOptions } from '@/core/services/word/caption-service';
 import { ToastService } from '@/core/services/ui/toast-service';
 import { ModalService } from '@/core/services/ui/modal-service';
-import { StorageService } from '@/core/services/storage/storage-service';
+import { StorageService, STORAGE_KEYS } from '@/core/services/storage/storage-service';
 import { AiModel, DEFAULT_AI_MODEL } from '@/core/services/ai/ai-models';
 import { IModule } from '@/core/interfaces';
 import { Button } from '@/core/components/button';
@@ -124,10 +123,10 @@ export class AutoCaptionModule implements IModule {
     const labelSelect = document.getElementById("caption-label-select") as HTMLSelectElement;
     const titleInput = document.getElementById("caption-title-input") as HTMLTextAreaElement;
 
-    const label = (labelSelect?.value || "Tabel") as 'Tabel' | 'Gambar';
+    const label = (labelSelect?.value || "Tabel") as CaptionLabel;
     let title = titleInput?.value.trim() || "";
     const options = this.getStyleOptions();
-    const apiKey = await StorageService.getItem("gemini_api_key");
+    const apiKey = await StorageService.getItem(STORAGE_KEYS.GEMINI_API_KEY);
     const model: AiModel = DEFAULT_AI_MODEL;
 
     try {
@@ -166,7 +165,7 @@ export class AutoCaptionModule implements IModule {
     if (!isConfirmed) return;
 
     const options = this.getStyleOptions();
-    const apiKey = await StorageService.getItem("gemini_api_key");
+    const apiKey = await StorageService.getItem(STORAGE_KEYS.GEMINI_API_KEY);
     const model: AiModel = DEFAULT_AI_MODEL;
 
     try {

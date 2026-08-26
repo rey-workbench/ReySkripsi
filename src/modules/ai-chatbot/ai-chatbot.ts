@@ -2,10 +2,16 @@ import { marked } from 'marked';
 import { IModule } from '@/core/interfaces';
 import { ToastService } from '@/core/services/ui/toast-service';
 import { AiOrchestrator } from '@/core/services/ai/ai-orchestrator';
-import { StorageService } from '@/core/services/storage/storage-service';
-import { AiModel, AI_MODEL_LIST, DEFAULT_AI_MODEL } from '@/core/services/ai/ai-models';
+import { IAiMessage, IAiRequestOptions } from '@/core/services/ai/iai-service';
+import { StorageService, STORAGE_KEYS } from '@/core/services/storage/storage-service';
+import { AI_MODEL_LIST, DEFAULT_AI_MODEL, isNvidiaModel } from '@/core/services/ai/ai-models';
+import { ChatTemplate, AiSkill } from '@/modules/ai-chatbot/template';
+import { WORD_TOOLS, executeWordTool, jumpToText } from '@/modules/ai-chatbot/word-tools';
 
 marked.setOptions({ breaks: true, gfm: true });
+
+const DEFAULT_PROMPT = 'Tolong analisis, berikan feedback, dan revisi (jika diperlukan) tulisan ini.';
+const FAILED_TO_CONNECT = 'Gagal menghubungi layanan AI.';
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (c) => ({
@@ -24,102 +30,11 @@ export class AiChatbotModule implements IModule {
     public iconColor = "#107c41";
     
     public get htmlContent(): string {
-        const modelItemsHtml = AI_MODEL_LIST.map((m) => {
-            const separator = m.isNvidia ? '<div style="height: 1px; background: #e2e8f0; margin: 4px 0;"></div>' : '';
-            return `
-                ${separator}
-                <div class="ai-model-item" data-value="${m.value}" style="padding: 8px 16px; font-size: 13px; cursor: pointer; color: #374151;">
-                    ${m.label}
-                </div>
-            `;
-        }).join('');
-
-        return `
-            <div class="module-header" style="display: flex; align-items: center; margin-bottom: 24px;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; flex-shrink: 0;">
-                    <defs>
-                        <linearGradient id="ai-star-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#8b5cf6"/>
-                            <stop offset="50%" stop-color="#3b82f6"/>
-                            <stop offset="100%" stop-color="#0ea5e9"/>
-                        </linearGradient>
-                    </defs>
-                    <path d="M11.5 0C11.5 5.5 16.5 10.5 22 10.5C16.5 10.5 11.5 15.5 11.5 21C11.5 15.5 6.5 10.5 1 10.5C6.5 10.5 11.5 5.5 11.5 0Z" fill="url(#ai-star-grad)"/>
-                </svg>
-                <div>
-                    <h3 class="ms-font-l" style="margin: 0; color: #111827;">Ask AI</h3>
-                </div>
-            </div>
-            
-            <div class="module-content" style="display: flex; flex-direction: column; height: calc(100vh - 120px);">
-                <div id="ai-chat-history" style="flex: 1; overflow-y: auto; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
-                    <div id="ai-chat-empty" style="text-align: center; color: #6b7280; font-size: 13px; margin-top: 20px;">
-                        Mulai percakapan dengan AI. Pesan Anda akan direspons otomatis berdasarkan isi dokumen.
-                    </div>
-                </div>
-                
-                <div style="position: relative; display: flex; flex-direction: column; background: #f3f2f1; border-radius: 16px; padding: 8px 12px; border: 1px solid #e2e8f0; gap: 8px;">
-                    
-                    <div style="display: flex; align-items: center; width: 100%;">
-                        <div id="ai-plus-btn" style="display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 4px; margin-right: 8px; border-radius: 50%; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
-                            <i class="ms-Icon ms-Icon--Add" style="font-size: 16px; color: #6b7280;"></i>
-                        </div>
-                        
-                        <div id="ai-plus-menu" style="display: none; position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 8px; min-width: 220px; z-index: 100;">
-                            <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
-                                <i class="ms-Icon ms-Icon--Document" style="font-size: 16px; color: #6b7280;"></i>
-                                Gunakan Seluruh Dokumen
-                            </div>
-                            <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
-                                <i class="ms-Icon ms-Icon--TextDocument" style="font-size: 16px; color: #6b7280;"></i>
-                                Fokus Teks Terpilih
-                            </div>
-                            <div style="height: 1px; background: #e2e8f0; margin: 6px 0;"></div>
-                            <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
-                                <i class="ms-Icon ms-Icon--Search" style="font-size: 16px; color: #6b7280;"></i>
-                                Pencarian Web (Search Grounding)
-                            </div>
-                            <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
-                                <i class="ms-Icon ms-Icon--Lightbulb" style="font-size: 16px; color: #6b7280;"></i>
-                                Mode Berpikir (Thinking)
-                            </div>
-                            <div class="ai-menu-item" style="padding: 10px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #374151; transition: background 0.2s;" onmouseover="this.style.background='#f3f2f1'" onmouseout="this.style.background='transparent'">
-                                <i class="ms-Icon ms-Icon--Code" style="font-size: 16px; color: #6b7280;"></i>
-                                Eksekusi Kode (Code Execution)
-                            </div>
-                        </div>
-                        
-                        <div id="ai-skill-badge" style="display: none; align-items: center; background: #e0f2fe; color: #0369a1; font-size: 12px; padding: 4px 8px; border-radius: 12px; margin-right: 8px; font-weight: 600; gap: 4px;">
-                            <span id="ai-skill-text"></span>
-                            <i class="ms-Icon ms-Icon--Cancel" id="ai-skill-clear" style="cursor: pointer; font-size: 10px; margin-left: 4px;" title="Hapus"></i>
-                        </div>
-                        <input type="hidden" id="ai-skill-value" value="" />
-                        
-                        <input type="text" id="ai-chat-input" placeholder="Minta AI..." style="flex: 1; background: transparent; border: none; outline: none; font-size: 14px; padding: 4px 0; color: #111827; min-width: 0;" />
-                    </div>
-                    
-                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding-left: 4px;">
-                        
-                        <div id="ai-model-trigger" style="display: flex; align-items: center; cursor: pointer; padding: 4px 8px; border-radius: 16px; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
-                            <span id="ai-model-display" style="font-size: 12px; color: #6b7280; font-weight: 600; margin-right: 4px;"></span>
-                            <i class="ms-Icon ms-Icon--ChevronDown" style="font-size: 10px; color: #6b7280;"></i>
-                        </div>
-                        
-                        <div id="ai-model-menu" style="display: none; position: absolute; bottom: 100%; left: 12px; margin-bottom: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 4px 0; min-width: 220px; z-index: 100; max-height: 250px; overflow-y: auto;">
-                            ${modelItemsHtml}
-                        </div>
-                        <input type="hidden" id="ai-model-select" value="${DEFAULT_AI_MODEL}" />
-    
-                        <button id="ai-btn-send" style="background: #0078D4; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; color: white; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,120,212,0.2);" onmouseover="this.style.background='#005a9e'" onmouseout="this.style.background='#0078D4'">
-                            <i class="ms-Icon ms-Icon--Send" style="font-size: 14px; margin-left: 2px;"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
+        return ChatTemplate.render();
     }
 
     private isGenerating = false;
+    private chatHistory: IAiMessage[] = [];
 
     public onInit(): void {
         const btnSend = document.getElementById("ai-btn-send");
@@ -136,7 +51,6 @@ export class AiChatbotModule implements IModule {
         const modelDisplay = document.getElementById("ai-model-display");
         const modelSelect = document.getElementById("ai-model-select") as HTMLInputElement;
 
-        // Tampilkan label model default dari AI_MODEL_LIST agar tidak hardcoded.
         if (modelDisplay) {
             const defaultModel = AI_MODEL_LIST.find(m => m.value === DEFAULT_AI_MODEL);
             modelDisplay.innerText = defaultModel ? defaultModel.label : DEFAULT_AI_MODEL;
@@ -185,10 +99,11 @@ export class AiChatbotModule implements IModule {
             const menuItems = plusMenu.querySelectorAll('.ai-menu-item');
             menuItems.forEach(item => {
                 item.addEventListener('click', (e) => {
-                    const text = (e.target as HTMLElement).innerText.trim();
+                    const itemEl = (e.target as HTMLElement).closest('.ai-menu-item') as HTMLElement;
+                    if (!itemEl) return;
                     if (skillBadge && skillText && skillValue) {
-                        skillText.innerText = text;
-                        skillValue.value = text;
+                        skillText.innerText = itemEl.innerText.trim();
+                        skillValue.value = itemEl.getAttribute('data-skill') || '';
                         skillBadge.style.display = "flex";
                     }
                     plusMenu.style.display = "none";
@@ -218,41 +133,10 @@ export class AiChatbotModule implements IModule {
                 if (citationEl) {
                     const searchText = citationEl.getAttribute("data-search");
                     if (searchText) {
-                        this.jumpToText(searchText);
+                        jumpToText(searchText);
                     }
                 }
             });
-        }
-    }
-
-    private async jumpToText(searchText: string) {
-        try {
-            await Word.run(async (context) => {
-                const cleanSearchText = searchText.replace(/^["']|["']$/g, '').trim();
-                const searchResults = context.document.body.search(cleanSearchText.substring(0, 100), {
-                    matchCase: false,
-                    matchWholeWord: false
-                });
-
-                searchResults.load("items");
-                await context.sync();
-
-                if (searchResults.items.length > 0) {
-                    let targetItem = searchResults.items[0];
-                    if (searchResults.items.length > 1) {
-                        targetItem = searchResults.items[searchResults.items.length - 1];
-                    }
-                    
-                    targetItem.select();
-                    await context.sync();
-                    ToastService.show("Teks referensi ditemukan.", false);
-                } else {
-                    ToastService.show("Teks referensi tidak ditemukan di dokumen saat ini.", true);
-                }
-            });
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            ToastService.show("Gagal mencari referensi: " + message, true);
         }
     }
 
@@ -314,39 +198,7 @@ export class AiChatbotModule implements IModule {
         textSpan.innerHTML = marked.parse(escapeHtml(text)) as string;
         messageEl.appendChild(textSpan);
 
-        if (sender === "ai" && citations.length > 0) {
-            const citationsContainer = document.createElement("div");
-            citationsContainer.style.marginTop = "8px";
-            citationsContainer.style.paddingTop = "8px";
-            citationsContainer.style.borderTop = "1px dashed #cbd5e1";
-            citationsContainer.style.display = "flex";
-            citationsContainer.style.flexDirection = "column";
-            citationsContainer.style.gap = "4px";
-
-            const titleSpan = document.createElement("span");
-            titleSpan.style.fontSize = "11px";
-            titleSpan.style.fontWeight = "600";
-            titleSpan.style.color = "#64748b";
-            titleSpan.innerText = "Sumber / Kutipan Dokumen:";
-            citationsContainer.appendChild(titleSpan);
-
-            citations.forEach((cit) => {
-                const citItem = document.createElement("div");
-                citItem.className = "ai-citation";
-                citItem.setAttribute("data-search", cit);
-                citItem.style.fontSize = "11px";
-                citItem.style.color = "#0284c7";
-                citItem.style.cursor = "pointer";
-                citItem.style.display = "flex";
-                citItem.style.alignItems = "center";
-                citItem.style.gap = "4px";
-                citItem.style.textDecoration = "underline";
-                citItem.innerHTML = `<i class="ms-Icon ms-Icon--Link" style="font-size: 10px;"></i> "${escapeHtml(cit.substring(0, 60))}${cit.length > 60 ? '...' : ''}"`;
-                citationsContainer.appendChild(citItem);
-            });
-
-            messageEl.appendChild(citationsContainer);
-        }
+        this.appendCitations(messageEl, citations);
 
         if (history) {
             history.appendChild(messageEl);
@@ -356,21 +208,57 @@ export class AiChatbotModule implements IModule {
         return messageEl;
     }
 
+    private appendCitations(el: HTMLElement, citations: string[]): void {
+        if (citations.length === 0) return;
+
+        const citationsContainer = document.createElement("div");
+        citationsContainer.style.marginTop = "8px";
+        citationsContainer.style.paddingTop = "8px";
+        citationsContainer.style.borderTop = "1px dashed #cbd5e1";
+        citationsContainer.style.display = "flex";
+        citationsContainer.style.flexDirection = "column";
+        citationsContainer.style.gap = "4px";
+
+        const titleSpan = document.createElement("span");
+        titleSpan.style.fontSize = "11px";
+        titleSpan.style.fontWeight = "600";
+        titleSpan.style.color = "#64748b";
+        titleSpan.innerText = "Sumber / Kutipan Dokumen:";
+        citationsContainer.appendChild(titleSpan);
+
+        citations.forEach((cit) => {
+            const citItem = document.createElement("div");
+            citItem.className = "ai-citation";
+            citItem.setAttribute("data-search", cit);
+            citItem.style.fontSize = "11px";
+            citItem.style.color = "#0284c7";
+            citItem.style.cursor = "pointer";
+            citItem.style.display = "flex";
+            citItem.style.alignItems = "center";
+            citItem.style.gap = "4px";
+            citItem.style.textDecoration = "underline";
+            citItem.innerHTML = `<i class="ms-Icon ms-Icon--Link" style="font-size: 10px;"></i> "${escapeHtml(cit.substring(0, 60))}${cit.length > 60 ? '...' : ''}"`;
+            citationsContainer.appendChild(citItem);
+        });
+
+        el.appendChild(citationsContainer);
+    }
+
     private async getApiKeyAndModel(): Promise<{ apiKey: string, model: string } | null> {
         const modelEl = document.getElementById("ai-model-select") as HTMLInputElement;
         
         const selectedModel = modelEl ? modelEl.value : DEFAULT_AI_MODEL;
-        const isNvidia = selectedModel.includes('minimax');
+        const isNvidia = isNvidiaModel(selectedModel);
         
         let apiKey = '';
         if (isNvidia) {
-            apiKey = await StorageService.getItem("nvidia_api_key");
+            apiKey = await StorageService.getItem(STORAGE_KEYS.NVIDIA_API_KEY);
             if (!apiKey) {
                 ToastService.show("Silakan atur NVIDIA API Key di menu Settings terlebih dahulu.", true);
                 return null;
             }
         } else {
-            apiKey = await StorageService.getItem("gemini_api_key");
+            apiKey = await StorageService.getItem(STORAGE_KEYS.GEMINI_API_KEY);
             if (!apiKey) {
                 ToastService.show("Silakan atur Gemini API Key di menu Settings terlebih dahulu.", true);
                 return null;
@@ -391,13 +279,16 @@ export class AiChatbotModule implements IModule {
 
         const inputEl = document.getElementById("ai-chat-input") as HTMLInputElement;
         const skillValueEl = document.getElementById("ai-skill-value") as HTMLInputElement;
+        const skillTextEl = document.getElementById("ai-skill-text");
         if (!inputEl) return;
         
+        const skill = (skillValueEl?.value || "").trim();
+        const skillLabel = (skillTextEl?.innerText || skill).trim();
+        const skillContext = skill ? `[Konteks Skill: ${skillLabel}] ` : "";
         const rawMessage = inputEl.value.trim();
-        const skillContext = skillValueEl && skillValueEl.value ? `[Konteks Skill: ${skillValueEl.value}] ` : "";
         const finalMessage = skillContext + rawMessage;
         
-        const userPrompt = finalMessage || "Tolong analisis, berikan feedback, dan revisi (jika diperlukan) tulisan ini.";
+        const userPrompt = finalMessage || DEFAULT_PROMPT;
         
         this.appendMessage("user", userPrompt);
         inputEl.value = "";
@@ -405,20 +296,34 @@ export class AiChatbotModule implements IModule {
         this.toggleLoadingState(true);
         
         const loadingMsgEl = this.appendMessage("ai", "Sedang menganalisis dokumen dan menyiapkan jawaban...");
+        let liveMsgEl: HTMLElement | null = null;
+        let liveBody: HTMLElement | null = null;
 
         try {
             let docContext = "";
             let citations: string[] = [];
+
+            if (skill === AiSkill.SELECTION) {
+                const hasSelection = await Word.run(async (context) => {
+                    const sel = context.document.getSelection();
+                    sel.load("text");
+                    await context.sync();
+                    return !!sel.text && sel.text.trim().length > 0;
+                });
+                if (!hasSelection) {
+                    ToastService.show("Tidak ada teks terpilih. Sorot teks terlebih dahulu, atau pilih skill lain.", true);
+                    return;
+                }
+            }
 
             await Word.run(async (context) => {
                 const selection = context.document.getSelection();
                 selection.load("text");
                 await context.sync();
 
-                if (selection.text && selection.text.trim().length > 0) {
-                    docContext = selection.text;
-                    citations.push(selection.text.trim());
-                } else {
+                const hasSelection = !!selection.text && selection.text.trim().length > 0;
+
+                if (skill === AiSkill.WHOLE_DOC || (!hasSelection && skill !== AiSkill.SELECTION)) {
                     const body = context.document.body;
                     body.load("text");
                     await context.sync();
@@ -438,6 +343,9 @@ export class AiChatbotModule implements IModule {
                             citations.push(nonShortParas[Math.floor(nonShortParas.length / 2)]);
                         }
                     }
+                } else if (hasSelection) {
+                    docContext = selection.text;
+                    citations.push(selection.text.trim());
                 }
             });
 
@@ -448,26 +356,60 @@ Jawablah pertanyaan pengguna dengan jelas, akademis, dan terstruktur berdasarkan
 ${docContext.slice(0, 8000)}
 -----------------------`;
 
+            const aiOptions: IAiRequestOptions = {
+                history: this.chatHistory.slice(-10),
+                tools: WORD_TOOLS,
+                onStream: (partial) => {
+                    if (!liveMsgEl) {
+                        if (loadingMsgEl && loadingMsgEl.parentNode) {
+                            loadingMsgEl.parentNode.removeChild(loadingMsgEl);
+                        }
+                        liveMsgEl = this.appendMessage("ai", partial);
+                        liveBody = liveMsgEl.querySelector(".ai-message-body") as HTMLElement | null;
+                    } else if (liveBody) {
+                        liveBody.innerHTML = marked.parse(escapeHtml(partial)) as string;
+                        const history = document.getElementById("ai-chat-history");
+                        if (history) history.scrollTop = history.scrollHeight;
+                    }
+                }
+            };
+            if (skill === AiSkill.SEARCH) aiOptions.searchGrounding = true;
+            if (skill === AiSkill.THINKING) aiOptions.thinking = true;
+            if (skill === AiSkill.CODE) aiOptions.codeExecution = true;
+
             const aiResponse = await AiOrchestrator.generateResponse(
                 userPrompt,
                 config.apiKey,
                 config.model,
-                systemInstruction
+                systemInstruction,
+                aiOptions,
+                executeWordTool
             );
 
-            if (loadingMsgEl && loadingMsgEl.parentNode) {
-                loadingMsgEl.parentNode.removeChild(loadingMsgEl);
+            if (liveMsgEl) {
+                this.appendCitations(liveMsgEl, citations);
+            } else {
+                if (loadingMsgEl && loadingMsgEl.parentNode) {
+                    loadingMsgEl.parentNode.removeChild(loadingMsgEl);
+                }
+                this.appendMessage("ai", aiResponse, citations);
             }
 
-            this.appendMessage("ai", aiResponse, citations);
+            this.chatHistory.push(
+                { role: 'user', text: userPrompt },
+                { role: 'model', text: aiResponse }
+            );
+            if (this.chatHistory.length > 20) {
+                this.chatHistory = this.chatHistory.slice(-20);
+            }
 
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             console.error(error);
-            if (loadingMsgEl && loadingMsgEl.parentNode) {
+            if (!liveMsgEl && loadingMsgEl && loadingMsgEl.parentNode) {
                 loadingMsgEl.parentNode.removeChild(loadingMsgEl);
             }
-            this.appendMessage("ai", `⚠️ Maaf, terjadi kesalahan: ${message || "Gagal menghubungi layanan AI."}`);
+            this.appendMessage("ai", `⚠️ Maaf, terjadi kesalahan: ${message || FAILED_TO_CONNECT}`);
         } finally {
             this.toggleLoadingState(false);
         }

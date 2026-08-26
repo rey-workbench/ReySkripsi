@@ -27,7 +27,7 @@ describe('romanToArabic', () => {
     expect(romanToArabic('')).toBeNaN();
     expect(romanToArabic('ABC')).toBeNaN();
     expect(romanToArabic('12')).toBeNaN();
-    expect(romanToArabic('IIII')).toBe(4); // non-standard but acceptable leniently
+    expect(romanToArabic('IIII')).toBe(4);
   });
 });
 

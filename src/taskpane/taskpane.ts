@@ -1,9 +1,3 @@
-/*
- * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
- * See LICENSE in the project root for license information.
- */
-
-/// <reference types="office-js" />
 import { AutoUpdater } from '@/core/services/system/auto-updater';
 import { DictionaryService } from '@/core/services/dictionary/dictionary-service';
 import { AppRouter } from '@/core/app-router';

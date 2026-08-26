@@ -9,8 +9,6 @@ export interface DropdownProps {
     id: string;
     label: string;
     options: DropdownOption[];
-    style?: string;
-    containerStyle?: string;
 }
 
 export class Dropdown {
@@ -19,14 +17,12 @@ export class Dropdown {
             `<option value="${opt.value}">${opt.label}</option>`
         ).join('');
 
-        const styleAttr = props.style ? `style="${props.style}"` : '';
-        const containerStyle = props.containerStyle !== undefined ? props.containerStyle : 'margin-bottom: 16px;';
         const labelHtml = props.label ? `<label class="${styles.label}">${props.label}</label>` : '';
 
         return `
-            <div style="${containerStyle}">
+            <div style="margin-bottom: 16px;">
                 ${labelHtml}
-                <select id="${props.id}" class="${styles.select}" ${styleAttr}>
+                <select id="${props.id}" class="${styles.select}">
                     ${optionsHtml}
                 </select>
             </div>

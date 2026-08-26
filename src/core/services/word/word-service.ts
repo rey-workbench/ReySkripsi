@@ -1,4 +1,3 @@
-/// <reference types="office-js" />
 import { ModalService } from '@/core/services/ui/modal-service';
 import { ICancellationToken, TProgressCallback } from '@/core/interfaces';
 import { SearchCollectionLike } from '@/core/services/word/word-scanner-service';

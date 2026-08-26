@@ -49,7 +49,6 @@ export class AppRouter {
             });
         });
 
-        // Initialize modules after DOM injection so they can bind their events
         setTimeout(() => {
             this.modules.forEach(mod => {
                 mod.onInit();

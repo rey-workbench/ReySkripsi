@@ -5,7 +5,6 @@ export interface IModule {
     iconColor: string;
     htmlContent: string;
 
-    // Dipanggil setelah HTML modul disuntikkan ke DOM.
     onInit(): void | Promise<void>;
 }
 

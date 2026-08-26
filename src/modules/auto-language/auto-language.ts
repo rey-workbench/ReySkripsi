@@ -47,7 +47,6 @@ export class AutoLanguageModule implements IModule {
         await DictionaryService.init();
         ToastService.hide();
 
-        // Ekstrak kata asing sekali; dipakai ulang oleh fase dry-run & eksekusi.
         let wordsToMatch: string[] | null = null;
 
         WordService.processWithConfirmation(wholeDocument, async (range, isDryRun, token, onProgress, searchCache) => {

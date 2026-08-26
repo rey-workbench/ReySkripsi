@@ -1,6 +1,6 @@
 import { IModule } from '@/core/interfaces';
 import { ToastService } from '@/core/services/ui/toast-service';
-import { StorageService } from '@/core/services/storage/storage-service';
+import { StorageService, STORAGE_KEYS } from '@/core/services/storage/storage-service';
 
 export class SettingsModule implements IModule {
   public id = "module-settings";
@@ -43,16 +43,16 @@ export class SettingsModule implements IModule {
     const nvidiaInput = document.getElementById("settings-nvidia-key") as HTMLInputElement;
     const btnSave = document.getElementById("settings-btn-save");
 
-    if (geminiInput) geminiInput.value = await StorageService.getItem("gemini_api_key");
-    if (nvidiaInput) nvidiaInput.value = await StorageService.getItem("nvidia_api_key");
+    if (geminiInput) geminiInput.value = await StorageService.getItem(STORAGE_KEYS.GEMINI_API_KEY);
+    if (nvidiaInput) nvidiaInput.value = await StorageService.getItem(STORAGE_KEYS.NVIDIA_API_KEY);
 
     if (btnSave) {
       btnSave.addEventListener("click", async () => {
         const geminiVal = geminiInput?.value.trim() || "";
         const nvidiaVal = nvidiaInput?.value.trim() || "";
 
-        await StorageService.setItem("gemini_api_key", geminiVal);
-        await StorageService.setItem("nvidia_api_key", nvidiaVal);
+        await StorageService.setItem(STORAGE_KEYS.GEMINI_API_KEY, geminiVal);
+        await StorageService.setItem(STORAGE_KEYS.NVIDIA_API_KEY, nvidiaVal);
 
         ToastService.show("API Key berhasil disimpan & terenkripsi secara aman!");
       });

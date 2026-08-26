@@ -52,7 +52,6 @@ export class AutoUpdater {
     private async checkForUpdates() {
         if (!this.currentVersion) return;
 
-        // Batasi cek agar event focus yang sering tidak membanjiri network.
         const now = Date.now();
         if (now - this.lastCheckAt < this.checkIntervalMs) return;
         this.lastCheckAt = now;

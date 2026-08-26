@@ -1,17 +1,5 @@
-/**
- * Secure Storage Service untuk menyimpan data sensitif (API key).
- *
- * Catatan keamanan: Add-in Office berjalan di peramban/mesin lokal pengguna,
- * sehingga tidak ada penyimpanan yang benar-benar kedap dari inspeksi lokal.
- * Di sini kami memakai WebCrypto AES-GCM bila tersedia (secure context via
- * HTTPS) untuk mengenkripsi nilai yang disimpan. Bila WebCrypto tidak tersedia
- * (mis. lingkungan tanpa secure context), kami jatuh ke obfuscation ringan
- * dan hanya meletakkan data di Office roamingSettings/IndexedDB agar tidak
- * tampil sebagai plain-text mentah di localStorage / editor nilai.
- */
-
 const keyNamespace = "ReySkripsi-key-v1";
-const ivLength = 12; // AES-GCM recommended IV length (96 bit)
+const ivLength = 12;
 
 function isCryptoAvailable(): boolean {
   return (
@@ -26,7 +14,6 @@ function bytesToBase64(buffer: Uint8Array): string {
   for (let i = 0; i < buffer.length; i++) {
     binary += String.fromCharCode(buffer[i]);
   }
-  // Penting: btoa hanya aman untuk karakter latin-1; byte sudah pasti 0-255.
   return btoa(binary);
 }
 
@@ -48,9 +35,6 @@ function getOrCreateKey(): Promise<CryptoKey> {
       storedRaw = null;
     }
 
-    // Ingat: jangan mengubah data lama yang sudah ada dengan token lain.
-    // Kita simpan raw key di localStorage (bukan secret rahasia yang bocor,
-    // tetapi hanya deterministic material untuk turunan kunci).
     const raw = storedRaw !== null ? storedRaw : crypto.randomUUID();
 
     crypto.subtle.importKey(
@@ -79,7 +63,6 @@ async function encryptWithCrypto(text: string): Promise<string> {
   const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
   const cipherBytes = new Uint8Array(cipher);
   const out = new Uint8Array(iv.length + cipherBytes.length + 1);
-  // [0] = versi skema (1 = AES-GCM), lalu IV, lalu ciphertext.
   out[0] = 1;
   out.set(iv, 1);
   out.set(cipherBytes, 1 + iv.length);
@@ -104,7 +87,6 @@ async function decryptWithCrypto(encrypted: string): Promise<string | null> {
   }
 }
 
-// Fallback: obfuscation ringan (bukan enkripsi) untuk lingkungan tanpa WebCrypto.
 function obfuscate(text: string): string {
   if (!text) return "";
   try {
@@ -169,14 +151,16 @@ async function decryptValue(encrypted: string): Promise<string> {
         console.warn("Gagal mendekripsi nilai v1:", e);
       }
     }
-    // Token v1 tidak bisa didekripsi tanpa WebCrypto → kembalikan kosong,
-    // jangan tampilkan ciphertext mentah.
     return "";
   }
-  // Nilai lama (obfuscation) dari versi sebelumnya.
   const raw = encrypted.startsWith("legacy:") ? encrypted.slice(7) : encrypted;
   return deobfuscate(raw);
 }
+
+export const STORAGE_KEYS = {
+    GEMINI_API_KEY: "gemini_api_key",
+    NVIDIA_API_KEY: "nvidia_api_key",
+} as const;
 
 export class StorageService {
   public static async setItem(key: string, value: string): Promise<void> {
@@ -208,7 +192,6 @@ export class StorageService {
   }
 
   public static async getItem(key: string): Promise<string> {
-    // Migrasikan nilai lama dari localStorage bila ada.
     let legacyVal: string | null = null;
     try {
       legacyVal = localStorage.getItem(key);
