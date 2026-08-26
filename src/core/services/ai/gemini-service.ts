@@ -1,4 +1,4 @@
-import { AI_NO_RESPONSE_MESSAGE, aiTimeoutMessage, IAiRequestOptions, IAiService, IAiToolCall } from '@/core/services/ai/iai-service';
+import { AI_NO_RESPONSE_MESSAGE, aiErrorMessage, aiTimeoutMessage, IAiRequestOptions, IAiService, IAiToolCall } from '@/core/services/ai/iai-service';
 import { fetchWithTimeout } from '@/core/utils/fetch';
 
 type GeminiTool =
@@ -77,7 +77,7 @@ export class GeminiService implements IAiService {
                 throw new Error(aiTimeoutMessage('Gemini'));
             }
             console.error("GeminiService error:", error);
-            throw new Error(`Terjadi kesalahan: ${err.message || String(error)}`);
+            throw new Error(`Terjadi kesalahan: ${aiErrorMessage(err.message || String(error))}`);
         }
     }
 

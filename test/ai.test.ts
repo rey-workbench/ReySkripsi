@@ -147,6 +147,22 @@ describe('GeminiService.generateContent', () => {
     expect(result.toolCalls).toEqual([]);
   });
 
+  it('menerjemahkan error project denied access menjadi pesan yang bisa ditindaklanjuti', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: { message: 'Your project has been denied access. Please contact support.' } }),
+    }));
+    await expect(new GeminiService().generateContent('p', 'key', 'm')).rejects.toThrow('flag di akun/project');
+  });
+
+  it('menerjemahkan error quota menjadi pesan retry yang jelas', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: { message: 'You exceeded your current quota, please check your plan and billing details.' } }),
+    }));
+    await expect(new GeminiService().generateContent('p', 'key', 'm')).rejects.toThrow('Tunggu 1 menit');
+  });
+
   it('streaming: mengumpulkan functionCall dan menahan part thought', async () => {
     stubFetchStream([
       'data: {"candidates":[{"content":{"parts":[{"thought":true,"text":"analisis internal"}]}}]}\n\n',

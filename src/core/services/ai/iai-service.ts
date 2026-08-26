@@ -4,6 +4,16 @@ export function aiTimeoutMessage(provider: string): string {
   return `Permintaan ke ${provider} API melebihi waktu tunggu (60 detik).`;
 }
 
+export function aiErrorMessage(message: string): string {
+  if (/denied access/i.test(message)) {
+    return 'Akses project Gemini ditolak Google (flag di akun/project, terjadi juga pada key baru). Cek banner peringatan di aistudio.google.com (halaman Projects & Billing) atau Cloud Console. Alternatif cepat: pakai model NVIDIA di Settings.';
+  }
+  if (/quota|rate limit/i.test(message)) {
+    return 'Kuota Gemini habis (rate limit). Tunggu 1 menit lalu kirim ulang; jika sering terjadi, cek plan/billing di ai.dev/rate-limit.';
+  }
+  return message;
+}
+
 export interface IAiMessage {
   role: 'user' | 'model';
   text: string;
