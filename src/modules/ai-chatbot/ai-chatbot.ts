@@ -1,8 +1,21 @@
+import { marked } from 'marked';
 import { IModule } from '@/core/interfaces';
 import { ToastService } from '@/core/services/ui/toast-service';
 import { AiOrchestrator } from '@/core/services/ai/ai-orchestrator';
 import { StorageService } from '@/core/services/storage/storage-service';
 import { AiModel, AI_MODEL_LIST, DEFAULT_AI_MODEL } from '@/core/services/ai/ai-models';
+
+marked.setOptions({ breaks: true, gfm: true });
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[c] as string));
+}
 
 export class AiChatbotModule implements IModule {
     public id = "module-ai-chatbot";
@@ -298,7 +311,7 @@ export class AiChatbotModule implements IModule {
 
         const textSpan = document.createElement("div");
         textSpan.className = "ai-message-body";
-        textSpan.innerHTML = text.replace(/\n/g, "<br>");
+        textSpan.innerHTML = marked.parse(escapeHtml(text)) as string;
         messageEl.appendChild(textSpan);
 
         if (sender === "ai" && citations.length > 0) {
@@ -328,7 +341,7 @@ export class AiChatbotModule implements IModule {
                 citItem.style.alignItems = "center";
                 citItem.style.gap = "4px";
                 citItem.style.textDecoration = "underline";
-                citItem.innerHTML = `<i class="ms-Icon ms-Icon--Link" style="font-size: 10px;"></i> "${cit.substring(0, 60)}${cit.length > 60 ? '...' : ''}"`;
+                citItem.innerHTML = `<i class="ms-Icon ms-Icon--Link" style="font-size: 10px;"></i> "${escapeHtml(cit.substring(0, 60))}${cit.length > 60 ? '...' : ''}"`;
                 citationsContainer.appendChild(citItem);
             });
 

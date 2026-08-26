@@ -69,3 +69,59 @@ html, body {
     width: 100%;
 }
 
+/* AI CHAT MARKDOWN */
+:global(.ai-message-body) pre {
+    background: #1f2937;
+    color: #e5e7eb;
+    padding: 8px 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 12px;
+    margin: 8px 0;
+}
+
+:global(.ai-message-body) :not(pre) > code {
+    background: #e5e7eb;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-family: Consolas, Menlo, monospace;
+    font-size: 12px;
+}
+
+:global(.ai-message-body) ul,
+:global(.ai-message-body) ol {
+    margin: 6px 0;
+    padding-left: 20px;
+}
+
+:global(.ai-message-body) h1,
+:global(.ai-message-body) h2,
+:global(.ai-message-body) h3,
+:global(.ai-message-body) h4 {
+    margin: 10px 0 4px;
+    font-size: 14px;
+}
+
+:global(.ai-message-body) blockquote {
+    border-left: 3px solid #cbd5e1;
+    margin: 6px 0;
+    padding-left: 10px;
+    color: #475569;
+}
+
+:global(.ai-message-body) table {
+    border-collapse: collapse;
+    margin: 8px 0;
+}
+
+:global(.ai-message-body) th,
+:global(.ai-message-body) td {
+    border: 1px solid #e2e8f0;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+:global(.ai-message-body) a {
+    color: #0284c7;
+}
+
