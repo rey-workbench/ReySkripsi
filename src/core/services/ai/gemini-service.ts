@@ -146,42 +146,45 @@ export class GeminiService implements IAiService {
             if (done) break;
             buffer += decoder.decode(value, { stream: true });
 
-            let sepIdx: number;
-            while ((sepIdx = buffer.indexOf('\n\n')) !== -1) {
-                const rawEvent = buffer.slice(0, sepIdx);
-                buffer = buffer.slice(sepIdx + 2);
-                text = this.consumeSseEvent(rawEvent, toolCalls, text, onStream);
+            let nlIdx: number;
+            while ((nlIdx = buffer.indexOf('\n')) !== -1) {
+                const line = buffer.slice(0, nlIdx).replace(/\r$/, '');
+                buffer = buffer.slice(nlIdx + 1);
+                text = this.consumeSseLine(line, toolCalls, text, onStream);
             }
+        }
+
+        buffer += decoder.decode();
+        if (buffer.trim()) {
+            text = this.consumeSseLine(buffer.replace(/\r$/, ''), toolCalls, text, onStream);
         }
 
         return { text, toolCalls };
     }
 
-    private consumeSseEvent(rawEvent: string, toolCalls: IAiToolCall[], text: string, onStream: (text: string) => void): string {
+    private consumeSseLine(line: string, toolCalls: IAiToolCall[], text: string, onStream: (text: string) => void): string {
         let nextText = text;
-        for (const line of rawEvent.split('\n')) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith('data:')) continue;
-            const data = trimmed.slice(5).trim();
-            if (!data || data === '[DONE]') continue;
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data:')) return nextText;
+        const data = trimmed.slice(5).trim();
+        if (!data || data === '[DONE]') return nextText;
 
-            let chunk: { candidates?: { content: { parts: GeminiPart[] } }[] };
-            try {
-                chunk = JSON.parse(data);
-            } catch {
-                continue;
-            }
+        let chunk: { candidates?: { content: { parts: GeminiPart[] } }[] };
+        try {
+            chunk = JSON.parse(data);
+        } catch {
+            return nextText;
+        }
 
-            for (const part of chunk.candidates?.[0]?.content?.parts ?? []) {
-                if (part.functionCall) toolCalls.push({ name: part.functionCall.name, args: part.functionCall.args });
-                if (part.thought) continue;
-                if (typeof part.text === 'string' && part.text) {
-                    nextText += part.text;
-                    onStream(nextText);
-                } else if (part.execution_result?.output) {
-                    nextText += `\`\`\`\n${part.execution_result.output}\n\`\`\``;
-                    onStream(nextText);
-                }
+        for (const part of chunk.candidates?.[0]?.content?.parts ?? []) {
+            if (part.functionCall) toolCalls.push({ name: part.functionCall.name, args: part.functionCall.args });
+            if (part.thought) continue;
+            if (typeof part.text === 'string' && part.text) {
+                nextText += part.text;
+                onStream(nextText);
+            } else if (part.execution_result?.output) {
+                nextText += `\`\`\`\n${part.execution_result.output}\n\`\`\``;
+                onStream(nextText);
             }
         }
         return nextText;

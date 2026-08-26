@@ -163,6 +163,20 @@ describe('GeminiService.generateContent', () => {
     await expect(new GeminiService().generateContent('p', 'key', 'm')).rejects.toThrow('Tunggu 1 menit');
   });
 
+  it('streaming: robust terhadap CRLF dan event terakhir tanpa newline (regresi parser)', async () => {
+    const fetchMock = stubFetchStream([
+      'data: {"candidates":[{"content":{"parts":[{"text":"Halo"}]}}]}\r\n\r\n',
+      'data: {"candidates":[{"content":{"parts":[{"text":" dunia"}]}}]}\r\n\r\n',
+      'data: {"candidates":[{"content":{"parts":[{"text":"!"}]}}]}\r\n',
+    ]);
+    const received: string[] = [];
+    const result = await new GeminiService().generateContent('p', 'key', 'm', undefined, {
+      onStream: (t) => received.push(t),
+    });
+    expect(received).toEqual(['Halo', 'Halo dunia', 'Halo dunia!']);
+    expect(result.text).toBe('Halo dunia!');
+  });
+
   it('streaming: mengumpulkan functionCall dan menahan part thought', async () => {
     stubFetchStream([
       'data: {"candidates":[{"content":{"parts":[{"thought":true,"text":"analisis internal"}]}}]}\n\n',
