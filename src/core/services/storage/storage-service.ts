@@ -1,142 +1,290 @@
 /**
- * Secure Storage Service menggunakan IndexedDB / Office Settings API
- * yang terisolasi dari inspection `localStorage` browser devtools sederhana,
- * serta menyajikan fungsi enkripsi ringkas berbasis Obfuscation/Base64.
+ * Secure Storage Service untuk menyimpan data sensitif (API key).
+ *
+ * Catatan keamanan: Add-in Office berjalan di peramban/mesin lokal pengguna,
+ * sehingga tidak ada penyimpanan yang benar-benar kedap dari inspeksi lokal.
+ * Di sini kami memakai WebCrypto AES-GCM bila tersedia (secure context via
+ * HTTPS) untuk mengenkripsi nilai yang disimpan. Bila WebCrypto tidak tersedia
+ * (mis. lingkungan tanpa secure context), kami jatuh ke obfuscation ringan
+ * dan hanya meletakkan data di Office roamingSettings/IndexedDB agar tidak
+ * tampil sebagai plain-text mentah di localStorage / editor nilai.
  */
 
-export class StorageService {
-    private static DB_NAME = "ReySkripsiSecureDB";
-    private static STORE_NAME = "secure_keys";
-    private static DB_VERSION = 1;
+// -----------------------------------------------------------------------------
+// Primitif WebCrypto AES-GCM
+// -----------------------------------------------------------------------------
+const keyNamespace = "ReySkripsi-key-v1";
+const ivLength = 12; // AES-GCM recommended IV length (96 bit)
 
-    // Enkripsi ringkas agar data tidak tersimpan dalam bentuk plain-text mentah
-    private static encrypt(text: string): string {
-        if (!text) return "";
-        try {
-            const encoded = btoa(encodeURIComponent(text));
-            return encoded.split("").reverse().join("");
-        } catch {
-            return text;
-        }
-    }
-
-    private static decrypt(encryptedText: string): string {
-        if (!encryptedText) return "";
-        try {
-            const reversed = encryptedText.split("").reverse().join("");
-            return decodeURIComponent(atob(reversed));
-        } catch {
-            return encryptedText;
-        }
-    }
-
-    private static openDB(): Promise<IDBDatabase> {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
-
-            request.onupgradeneeded = (event: any) => {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains(this.STORE_NAME)) {
-                    db.createObjectStore(this.STORE_NAME);
-                }
-            };
-
-            request.onsuccess = (event: any) => {
-                resolve(event.target.result);
-            };
-
-            request.onerror = (event: any) => {
-                reject(event.target.error);
-            };
-        });
-    }
-
-    /**
-     * Menyimpan data sensitif secara aman ke IndexedDB lokal (terenkripsi).
-     * Juga menghapus sisa data sensitif dari localStorage jika sebelumnya tersimpan di sana.
-     */
-    public static async setItem(key: string, value: string): Promise<void> {
-        // Hapus sisa localStorage jika ada
-        try {
-            localStorage.removeItem(key);
-        } catch {}
-
-        try {
-            const db = await this.openDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(this.STORE_NAME, "readwrite");
-                const store = transaction.objectStore(this.STORE_NAME);
-                const encryptedVal = this.encrypt(value);
-                const request = store.put(encryptedVal, key);
-
-                request.onsuccess = () => resolve();
-                request.onerror = (e: any) => reject(e.target.error);
-            });
-        } catch (e) {
-            // Fallback ke Office.context.roamingSettings jika IndexedDB tidak tersedia
-            if (Office?.context?.roamingSettings) {
-                Office.context.roamingSettings.set(key, this.encrypt(value));
-                Office.context.roamingSettings.saveAsync();
-            }
-        }
-    }
-
-    /**
-     * Mengambil data sensitif secara aman dari IndexedDB lokal.
-     */
-    public static async getItem(key: string): Promise<string> {
-        // Jika ada sisa di localStorage, migrasikan ke IndexedDB lalu hapus dari localStorage
-        const legacyVal = localStorage.getItem(key);
-        if (legacyVal) {
-            await this.setItem(key, legacyVal);
-            localStorage.removeItem(key);
-            return legacyVal;
-        }
-
-        try {
-            const db = await this.openDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(this.STORE_NAME, "readonly");
-                const store = transaction.objectStore(this.STORE_NAME);
-                const request = store.get(key);
-
-                request.onsuccess = (event: any) => {
-                    const encryptedVal = event.target.result;
-                    if (encryptedVal) {
-                        resolve(this.decrypt(encryptedVal));
-                    } else {
-                        resolve("");
-                    }
-                };
-
-                request.onerror = () => resolve("");
-            });
-        } catch (e) {
-            // Fallback dari Office roamingSettings
-            if (Office?.context?.roamingSettings) {
-                const encryptedVal = Office.context.roamingSettings.get(key);
-                return this.decrypt(encryptedVal || "");
-            }
-            return "";
-        }
-    }
-
-    /**
-     * Menghapus item dari penyimpanan aman.
-     */
-    public static async removeItem(key: string): Promise<void> {
-        try {
-            localStorage.removeItem(key);
-        } catch {}
-
-        try {
-            const db = await this.openDB();
-            return new Promise((resolve) => {
-                const transaction = db.transaction(this.STORE_NAME, "readwrite");
-                const store = transaction.objectStore(this.STORE_NAME);
-                store.delete(key);
-                transaction.oncomplete = () => resolve();
-            });
-        } catch {}
-    }
+function isCryptoAvailable(): boolean {
+  return (
+    typeof crypto !== "undefined" &&
+    !!crypto.subtle &&
+    !!crypto.getRandomValues
+  );
 }
+
+function bytesToBase64(buffer: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < buffer.length; i++) {
+    binary += String.fromCharCode(buffer[i]);
+  }
+  // Penting: btoa hanya aman untuk karakter latin-1; byte sudah pasti 0-255.
+  return btoa(binary);
+}
+
+function base64ToBytes(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+function getOrCreateKey(): Promise<CryptoKey> {
+  return new Promise((resolve, reject) => {
+    let storedRaw: string | null = null;
+    try {
+      storedRaw = localStorage.getItem(keyNamespace);
+    } catch {
+      storedRaw = null;
+    }
+
+    // Ingat: jangan mengubah data lama yang sudah ada dengan token lain.
+    // Kita simpan raw key di localStorage (bukan secret rahasia yang bocor,
+    // tetapi hanya deterministic material untuk turunan kunci).
+    const raw = storedRaw !== null ? storedRaw : crypto.randomUUID();
+
+    crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(raw),
+      "AES-GCM",
+      false,
+      ["encrypt", "decrypt"]
+    ).then((key) => {
+      if (storedRaw === null) {
+        try {
+          localStorage.setItem(keyNamespace, raw);
+        } catch {
+          /* abaikan kegagalan penyimpanan kunci */
+        }
+      }
+      resolve(key);
+    }, reject);
+  });
+}
+
+async function encryptWithCrypto(text: string): Promise<string> {
+  const key = await getOrCreateKey();
+  const iv = crypto.getRandomValues(new Uint8Array(ivLength));
+  const encoded = new TextEncoder().encode(text);
+  const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
+  const cipherBytes = new Uint8Array(cipher);
+  const out = new Uint8Array(iv.length + cipherBytes.length + 1);
+  // [0] = versi skema (1 = AES-GCM), lalu IV, lalu ciphertext.
+  out[0] = 1;
+  out.set(iv, 1);
+  out.set(cipherBytes, 1 + iv.length);
+  return "v1:" + bytesToBase64(out);
+}
+
+async function decryptWithCrypto(encrypted: string): Promise<string | null> {
+  if (!encrypted.startsWith("v1:")) return null;
+  const token = encrypted.slice(3);
+  const bytes = base64ToBytes(token);
+  if (bytes.length < 1 + ivLength + 16) return null;
+  const version = bytes[0];
+  if (version !== 1) return null;
+  const iv = bytes.slice(1, 1 + ivLength);
+  const cipher = bytes.slice(1 + ivLength);
+  const key = await getOrCreateKey();
+  try {
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, cipher);
+    return new TextDecoder().decode(plain);
+  } catch {
+    return null;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Fallback: obfuscation ringan (bukan enkripsi) untuk lingkungan tanpa WebCrypto
+// -----------------------------------------------------------------------------
+function obfuscate(text: string): string {
+  if (!text) return "";
+  try {
+    const encoded = btoa(encodeURIComponent(text));
+    return encoded.split("").reverse().join("");
+  } catch {
+    return text;
+  }
+}
+
+function deobfuscate(encryptedText: string): string {
+  if (!encryptedText) return "";
+  try {
+    const reversed = encryptedText.split("").reverse().join("");
+    return decodeURIComponent(atob(reversed));
+  } catch {
+    return encryptedText;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// IndexedDB
+// -----------------------------------------------------------------------------
+const DB_NAME = "ReySkripsiSecureDB";
+const STORE_NAME = "secure_keys";
+const DB_VERSION = 2;
+
+function openDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+
+    request.onsuccess = (event) => resolve((event.target as IDBOpenDBRequest).result);
+    request.onerror = (event) => reject((event.target as IDBRequest).error);
+  });
+}
+
+
+async function encryptValue(text: string): Promise<string> {
+  if (!text) return "";
+  try {
+    if (isCryptoAvailable()) {
+      return await encryptWithCrypto(text);
+    }
+  } catch (e) {
+    console.warn("WebCrypto gagal, jatuh ke obfuscation:", e);
+  }
+  return "legacy:" + obfuscate(text);
+}
+
+async function decryptValue(encrypted: string): Promise<string> {
+  if (!encrypted) return "";
+  if (encrypted.startsWith("v1:")) {
+    if (isCryptoAvailable()) {
+      try {
+        const decrypted = await decryptWithCrypto(encrypted);
+        if (decrypted !== null) return decrypted;
+      } catch (e) {
+        console.warn("Gagal mendekripsi nilai v1:", e);
+      }
+    }
+    // Token v1 tidak bisa didekripsi tanpa WebCrypto → kembalikan kosong,
+    // jangan tampilkan ciphertext mentah.
+    return "";
+  }
+  // Nilai lama (obfuscation) dari versi sebelumnya.
+  const raw = encrypted.startsWith("legacy:") ? encrypted.slice(7) : encrypted;
+  return deobfuscate(raw);
+}
+
+// -----------------------------------------------------------------------------
+// API publik
+// -----------------------------------------------------------------------------
+export class StorageService {
+  /**
+   * Menyimpan data sensitif secara terenkripsi (AES-GCM) ke IndexedDB lokal.
+   * Menghapus sisa data lama dari localStorage jika sebelumnya tersimpan di sana.
+   */
+  public static async setItem(key: string, value: string): Promise<void> {
+    try {
+      localStorage.removeItem(key);
+    } catch { /* ignore */ }
+
+    const encryptedVal = await encryptValue(value);
+
+    if (typeof indexedDB !== "undefined") {
+      try {
+        const db = await openDB();
+        return new Promise<void>((resolve, reject) => {
+          const transaction = db.transaction(STORE_NAME, "readwrite");
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.put(encryptedVal, key);
+          request.onsuccess = () => resolve();
+          request.onerror = (e) => reject((e.target as IDBRequest).error);
+        });
+      } catch (e) {
+        console.warn("IndexedDB gagal, fallback ke Office roamingSettings:", e);
+      }
+    }
+
+    // Fallback ke Office.context.roamingSettings jika IndexedDB tidak tersedia
+    if (Office?.context?.roamingSettings) {
+      Office.context.roamingSettings.set(key, encryptedVal);
+      Office.context.roamingSettings.saveAsync();
+    }
+  }
+
+  /**
+   * Mengambil data sensitif yang tersimpan.
+   */
+  public static async getItem(key: string): Promise<string> {
+    // Migrasikan nilai lama dari localStorage bila ada.
+    let legacyVal: string | null = null;
+    try {
+      legacyVal = localStorage.getItem(key);
+    } catch { /* ignore */ }
+    if (legacyVal) {
+      try { localStorage.removeItem(key); } catch { /* ignore */ }
+      return await decryptValue(legacyVal);
+    }
+
+    if (typeof indexedDB !== "undefined") {
+      try {
+        const db = await openDB();
+        return new Promise<string>((resolve) => {
+          const transaction = db.transaction(STORE_NAME, "readonly");
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.get(key);
+          request.onsuccess = (event) => {
+            const encryptedVal = (event.target as IDBRequest).result;
+            if (encryptedVal) {
+              decryptValue(encryptedVal).then(resolve).catch(() => resolve(""));
+            } else {
+              resolve("");
+            }
+          };
+          request.onerror = () => resolve("");
+        });
+      } catch (e) {
+        console.warn("IndexedDB gagal dibaca:", e);
+      }
+    }
+
+    // Fallback dari Office roamingSettings
+    if (Office?.context?.roamingSettings) {
+      const encryptedVal = Office.context.roamingSettings.get(key);
+      if (encryptedVal) {
+        return await decryptValue(encryptedVal);
+      }
+    }
+    return "";
+  }
+
+  /**
+   * Menghapus item dari penyimpanan aman.
+   */
+  public static async removeItem(key: string): Promise<void> {
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+
+    if (typeof indexedDB !== "undefined") {
+      try {
+        const db = await openDB();
+        return new Promise<void>((resolve) => {
+          const transaction = db.transaction(STORE_NAME, "readwrite");
+          const store = transaction.objectStore(STORE_NAME);
+          store.delete(key);
+          transaction.oncomplete = () => resolve();
+        });
+      } catch { /* ignore */ }
+    }
+  }
+}

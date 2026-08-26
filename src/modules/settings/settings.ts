@@ -1,6 +1,6 @@
-import { IModule } from '../../core/interfaces';
-import { ToastService } from '../../core/services/ui/toast-service';
-import { StorageService } from '../../core/services/storage/storage-service';
+import { IModule } from '@/core/interfaces';
+import { ToastService } from '@/core/services/ui/toast-service';
+import { StorageService } from '@/core/services/storage/storage-service';
 
 export class SettingsModule implements IModule {
   public id = "module-settings";

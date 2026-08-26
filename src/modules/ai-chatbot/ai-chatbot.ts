@@ -1,8 +1,8 @@
-import { IModule } from '../../core/interfaces';
-import { ToastService } from '../../core/services/ui/toast-service';
-import { AiOrchestrator } from '../../core/services/ai/ai-orchestrator';
-import { StorageService } from '../../core/services/storage/storage-service';
-import { AiModel, AI_MODEL_LIST, DEFAULT_AI_MODEL } from '../../core/services/ai/ai-models';
+import { IModule } from '@/core/interfaces';
+import { ToastService } from '@/core/services/ui/toast-service';
+import { AiOrchestrator } from '@/core/services/ai/ai-orchestrator';
+import { StorageService } from '@/core/services/storage/storage-service';
+import { AiModel, AI_MODEL_LIST, DEFAULT_AI_MODEL } from '@/core/services/ai/ai-models';
 
 export class AiChatbotModule implements IModule {
     public id = "module-ai-chatbot";
@@ -94,7 +94,7 @@ export class AiChatbotModule implements IModule {
                         
                         <!-- Custom Dropdown Trigger -->
                         <div id="ai-model-trigger" style="display: flex; align-items: center; cursor: pointer; padding: 4px 8px; border-radius: 16px; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
-                            <span id="ai-model-display" style="font-size: 12px; color: #6b7280; font-weight: 600; margin-right: 4px;">Gemini 2.5 Flash-Lite</span>
+                            <span id="ai-model-display" style="font-size: 12px; color: #6b7280; font-weight: 600; margin-right: 4px;"></span>
                             <i class="ms-Icon ms-Icon--ChevronDown" style="font-size: 10px; color: #6b7280;"></i>
                         </div>
                         
@@ -130,6 +130,12 @@ export class AiChatbotModule implements IModule {
         const modelMenu = document.getElementById("ai-model-menu");
         const modelDisplay = document.getElementById("ai-model-display");
         const modelSelect = document.getElementById("ai-model-select") as HTMLInputElement;
+
+        // Tampilkan label model default dari AI_MODEL_LIST agar tidak hardcoded.
+        if (modelDisplay) {
+            const defaultModel = AI_MODEL_LIST.find(m => m.value === DEFAULT_AI_MODEL);
+            modelDisplay.innerText = defaultModel ? defaultModel.label : DEFAULT_AI_MODEL;
+        }
         
         if (btnSend) btnSend.addEventListener("click", () => this.handleSend());
         if (inputField) {
@@ -245,8 +251,9 @@ export class AiChatbotModule implements IModule {
                     ToastService.show("Teks referensi tidak ditemukan di dokumen saat ini.", true);
                 }
             });
-        } catch (error: any) {
-            ToastService.show("Gagal mencari referensi: " + error.message, true);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            ToastService.show("Gagal mencari referensi: " + message, true);
         }
     }
 
@@ -455,12 +462,13 @@ ${docContext.slice(0, 8000)}
 
             this.appendMessage("ai", aiResponse, citations);
 
-        } catch (error: any) {
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
             console.error(error);
             if (loadingMsgEl && loadingMsgEl.parentNode) {
                 loadingMsgEl.parentNode.removeChild(loadingMsgEl);
             }
-            this.appendMessage("ai", `⚠️ Maaf, terjadi kesalahan: ${error.message || "Gagal menghubungi layanan AI."}`);
+            this.appendMessage("ai", `⚠️ Maaf, terjadi kesalahan: ${message || "Gagal menghubungi layanan AI."}`);
         } finally {
             this.toggleLoadingState(false);
         }

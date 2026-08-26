@@ -1,12 +1,12 @@
 /// <reference types="office-js" />
-import { WordService } from '../../core/services/word/word-service';
-import { DictionaryService } from '../../core/services/dictionary/dictionary-service';
-import { WordScannerService } from '../../core/services/word/word-scanner-service';
-import { ToastService } from '../../core/services/ui/toast-service';
-import { IModule } from '../../core/interfaces';
-import { Button } from '../../core/components/button';
-import { Textarea } from '../../core/components/textarea';
-import { Checkbox } from '../../core/components/checkbox';
+import { WordService } from '@/core/services/word/word-service';
+import { DictionaryService } from '@/core/services/dictionary/dictionary-service';
+import { WordScannerService } from '@/core/services/word/word-scanner-service';
+import { ToastService } from '@/core/services/ui/toast-service';
+import { IModule } from '@/core/interfaces';
+import { Button } from '@/core/components/button';
+import { Textarea } from '@/core/components/textarea';
+import { Checkbox } from '@/core/components/checkbox';
 
 export class BatchManualModule implements IModule {
   public id = "module-batch";

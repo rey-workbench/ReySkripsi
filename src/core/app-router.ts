@@ -1,6 +1,6 @@
-import { IModule } from './interfaces';
-import { Card } from './components/card';
-import { Layout } from './components/layout';
+import { IModule } from '@/core/interfaces';
+import { Card } from '@/core/components/card';
+import { Layout } from '@/core/components/layout';
 
 export class AppRouter {
     private modules: IModule[] = [];

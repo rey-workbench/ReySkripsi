@@ -1,5 +1,5 @@
 import styles from '../../components/css/toast.css';
-import { DOMService } from './dom-service';
+import { DOMService } from '@/core/services/ui/dom-service';
 
 export class ToastService {
   public static show(message: string, isError: boolean = false, keepOpen: boolean = false) {

@@ -1,6 +1,6 @@
 import styles from '../../components/css/modal.css';
 import btnStyles from '../../components/css/button.css';
-import { DOMService } from './dom-service';
+import { DOMService } from '@/core/services/ui/dom-service';
 
 export class ModalService {
   public static showConfirmation(message: string): Promise<boolean> {

@@ -6,7 +6,7 @@ export interface IModule {
     htmlContent: string; // The HTML string template
     
     // Lifecycle hook: called after HTML is injected into DOM
-    onInit(): void;
+    onInit(): void | Promise<void>;
 }
 
 export interface ICancellationToken {

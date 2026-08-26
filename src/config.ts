@@ -16,16 +16,7 @@ export const ENV = {
     MIN_WORD_LENGTH: 2,
 
     // -----------------------------------------------------
-    // 3. MICROSOFT WORD CONSTANTS
-    // -----------------------------------------------------
-    // LCID (Locale ID) bawaan Microsoft Word untuk identifikasi bahasa
-    MS_WORD_LCID: {
-        ENGLISH: 0x09,
-        INDONESIAN: 0x21
-    },
-
-    // -----------------------------------------------------
-    // 4. FORMATTING RULES
+    // 3. FORMATTING RULES
     // -----------------------------------------------------
     // Format yang akan diaplikasikan pada kata asing/target
     FORMAT_STYLE: {

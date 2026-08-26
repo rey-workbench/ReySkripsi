@@ -1,7 +1,6 @@
 /// <reference types="office-js" />
-import { ToastService } from '../ui/toast-service';
-import { ModalService } from '../ui/modal-service';
-import { ICancellationToken, TProgressCallback } from '../../interfaces';
+import { ModalService } from '@/core/services/ui/modal-service';
+import { ICancellationToken, TProgressCallback } from '@/core/interfaces';
 
 export class WordService {
   private static isProcessing = false;
@@ -29,21 +28,9 @@ export class WordService {
            ModalService.showProgress(msg, percent, handleCancel);
         };
 
-        if (wholeDocument) {
-          totalMatches += await scanner(context.document.body, true, cancellationToken, progressCallback);
-        } else {
-          const range = context.document.getSelection();
-          range.load("text");
-          await context.sync();
-          
-          if (!range.text || range.text.trim() === "") {
-              ModalService.hideProgress();
-              ModalService.showAlert("Info", "Pilih teks di dalam dokumen Word terlebih dahulu!");
-              return;
-          }
-          
-          totalMatches += await scanner(range, true, cancellationToken, progressCallback);
-        }
+        const range = await this.getTargetRange(context, wholeDocument);
+        if (!range) return;
+        totalMatches += await scanner(range, true, cancellationToken, progressCallback);
 
         ModalService.hideProgress();
 
@@ -67,12 +54,9 @@ export class WordService {
 
         // Phase 3: Execution
         let appliedCount = 0;
-        
-        if (wholeDocument) {
-          appliedCount += await scanner(context.document.body, false, cancellationToken, progressCallback);
-        } else {
-          const range = context.document.getSelection();
-          appliedCount += await scanner(range, false, cancellationToken, progressCallback);
+        const execRange = await this.getTargetRange(context, wholeDocument);
+        if (execRange) {
+          appliedCount += await scanner(execRange, false, cancellationToken, progressCallback);
         }
 
         ModalService.hideProgress();
@@ -83,12 +67,35 @@ export class WordService {
            ModalService.showAlert("Selesai", `Selesai! Berhasil memiringkan ${appliedCount} kata.`);
         }
       });
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error(error);
       ModalService.hideProgress();
-      ModalService.showAlert("Error", error.message);
+      ModalService.showAlert("Error", message);
     } finally {
       this.isProcessing = false;
     }
+  }
+
+  /**
+   * Menyelesaikan range target (seluruh body atau seleksi).
+   * Mengembalikan null bila seleksi kosong agar fase dibatalkan.
+   */
+  private static async getTargetRange(
+    context: Word.RequestContext,
+    wholeDocument: boolean
+  ): Promise<Word.Range | Word.Body | null> {
+    if (wholeDocument) return context.document.body;
+
+    const range = context.document.getSelection();
+    range.load("text");
+    await context.sync();
+
+    if (!range.text || range.text.trim() === "") {
+      ModalService.hideProgress();
+      ModalService.showAlert("Info", "Pilih teks di dalam dokumen Word terlebih dahulu!");
+      return null;
+    }
+    return range;
   }
 }

@@ -4,8 +4,9 @@
       "@babel/preset-env",
       {
         "targets": {
-          "esmodules": false
-        }
+          "esmodules": true
+        },
+        "bugfixes": true
       }
     ],
     "@babel/preset-typescript"

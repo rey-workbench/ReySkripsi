@@ -4,6 +4,9 @@
     "strict": true,
     "allowJs": true,
     "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "jsx": "react",

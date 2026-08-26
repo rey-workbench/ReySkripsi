@@ -1,4 +1,4 @@
-import { AiProviderFactory } from './ai-provider-factory';
+import { AiProviderFactory } from '@/core/services/ai/ai-provider-factory';
 
 export class AiOrchestrator {
     /**

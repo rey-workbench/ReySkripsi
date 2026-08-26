@@ -1,4 +1,5 @@
-import { IAiService } from './iai-service';
+import { IAiService } from '@/core/services/ai/iai-service';
+import { fetchWithTimeout } from '@/core/utils/fetch';
 
 export class NvidiaService implements IAiService {
     public async generateContent(prompt: string, apiKey: string, model: string, systemInstruction?: string): Promise<string> {
@@ -6,7 +7,7 @@ export class NvidiaService implements IAiService {
         const invokeUrl = "/api/nvidia";
 
         try {
-            const messages: any[] = [];
+            const messages: { role: string; content: string }[] = [];
 
             if (systemInstruction) {
                 messages.push({ role: "system", content: systemInstruction });
@@ -15,10 +16,7 @@ export class NvidiaService implements IAiService {
             messages.push({ role: "user", content: prompt });
 
             // Pastikan format model sesuai dengan yang dibutuhkan NVIDIA API
-            let fullModelId = model;
-            if (model === 'minimax-m3') {
-                fullModelId = 'minimaxai/minimax-m3';
-            }
+            const fullModelId = model === 'minimax-m3' ? 'minimaxai/minimax-m3' : model;
 
             const payload = {
                 model: fullModelId,
@@ -29,7 +27,7 @@ export class NvidiaService implements IAiService {
                 stream: false
             };
 
-            const response = await fetch(invokeUrl, {
+            const response = await fetchWithTimeout(invokeUrl, {
                 method: 'POST',
                 headers: {
                     "Authorization": `Bearer ${apiKey}`,
@@ -56,9 +54,13 @@ export class NvidiaService implements IAiService {
             }
             
             return "Maaf, AI tidak dapat memberikan respons saat ini.";
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const err = error as { name?: string; message?: string };
+            if (err.name === 'AbortError') {
+                throw new Error('Permintaan ke NVIDIA API melebihi waktu tunggu (60 detik).');
+            }
             console.error("NvidiaService error:", error);
-            throw new Error(`Terjadi kesalahan: ${error.message}`);
+            throw new Error(`Terjadi kesalahan: ${err.message || String(error)}`);
         }
     }
 }

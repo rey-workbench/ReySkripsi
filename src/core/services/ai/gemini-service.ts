@@ -1,16 +1,18 @@
-import { IAiService } from './iai-service';
+import { IAiService } from '@/core/services/ai/iai-service';
+import { fetchWithTimeout } from '@/core/utils/fetch';
 
 export class GeminiService implements IAiService {
     public async generateContent(prompt: string, apiKey: string, model: string, systemInstruction?: string): Promise<string> {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        
+        // API key dikirim via header `x-goog-api-key`, bukan ditaruh di query string,
+        // agar tidak bocor ke URL/log/referrer. Timeout+AbortController agar tidak hang.
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+
         try {
-            const bodyPayload: any = {
-                contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
-                }]
+            const bodyPayload: {
+                contents: { parts: { text: string }[] }[];
+                system_instruction?: { parts: { text: string }[] };
+            } = {
+                contents: [{ parts: [{ text: prompt }] }]
             };
 
             if (systemInstruction) {
@@ -19,10 +21,11 @@ export class GeminiService implements IAiService {
                 };
             }
 
-            const response = await fetch(apiUrl, {
+            const response = await fetchWithTimeout(apiUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': apiKey
                 },
                 body: JSON.stringify(bodyPayload)
             });
@@ -37,9 +40,13 @@ export class GeminiService implements IAiService {
                 return data.candidates[0].content.parts[0].text;
             }
             return "Maaf, AI tidak dapat memberikan respons saat ini.";
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const err = error as { name?: string; message?: string };
+            if (err.name === 'AbortError') {
+                throw new Error('Permintaan ke Gemini API melebihi waktu tunggu (60 detik).');
+            }
             console.error("GeminiService error:", error);
-            throw new Error(`Terjadi kesalahan: ${error.message}`);
+            throw new Error(`Terjadi kesalahan: ${err.message || String(error)}`);
         }
     }
 }

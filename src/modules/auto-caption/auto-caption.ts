@@ -1,14 +1,14 @@
 /// <reference types="office-js" />
-import { CaptionService, ICaptionStyleOptions } from '../../core/services/word/caption-service';
-import { ToastService } from '../../core/services/ui/toast-service';
-import { ModalService } from '../../core/services/ui/modal-service';
-import { StorageService } from '../../core/services/storage/storage-service';
-import { AiModel, DEFAULT_AI_MODEL } from '../../core/services/ai/ai-models';
-import { IModule } from '../../core/interfaces';
-import { Button } from '../../core/components/button';
-import { Dropdown } from '../../core/components/dropdown';
-import { Textarea } from '../../core/components/textarea';
-import { Checkbox } from '../../core/components/checkbox';
+import { CaptionService, ICaptionStyleOptions } from '@/core/services/word/caption-service';
+import { ToastService } from '@/core/services/ui/toast-service';
+import { ModalService } from '@/core/services/ui/modal-service';
+import { StorageService } from '@/core/services/storage/storage-service';
+import { AiModel, DEFAULT_AI_MODEL } from '@/core/services/ai/ai-models';
+import { IModule } from '@/core/interfaces';
+import { Button } from '@/core/components/button';
+import { Dropdown } from '@/core/components/dropdown';
+import { Textarea } from '@/core/components/textarea';
+import { Checkbox } from '@/core/components/checkbox';
 
 export class AutoCaptionModule implements IModule {
   public id = "module-caption";
@@ -149,9 +149,10 @@ export class AutoCaptionModule implements IModule {
 
       const insertedCaption = await CaptionService.insertCaptionForSelection(label, title, options);
       ToastService.show(`Berhasil menyisipkan caption!`);
-    } catch (e: any) {
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
       console.error(e);
-      ToastService.show("Gagal menyisipkan caption: " + e.message, true);
+      ToastService.show("Gagal menyisipkan caption: " + message, true);
     } finally {
       ToastService.hide();
     }
@@ -173,9 +174,10 @@ export class AutoCaptionModule implements IModule {
       const aiConfig = apiKey ? { apiKey: apiKey, model: model } : undefined;
       const count = await CaptionService.autoCaptionAllTables(options, aiConfig);
       ToastService.show(`Berhasil memberi caption otomatis pada ${count} tabel!`);
-    } catch (e: any) {
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
       console.error(e);
-      ToastService.show("Gagal memproses tabel: " + e.message, true);
+      ToastService.show("Gagal memproses tabel: " + message, true);
     } finally {
       ToastService.hide();
     }

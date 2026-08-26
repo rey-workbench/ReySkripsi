@@ -1,22 +1,48 @@
-import { ENV } from '../../../config';
+import { ENV } from '@/config';
 // @ts-ignore
 import { Stemmer } from 'sastrawijs';
 
 export class DictionaryService {
     private static kbbiDict: Set<string> | null = null;
     private static stemmer = new Stemmer();
+    // Cache hasil stemming per kata mentah agar tidak meng-stem ulang kata yang sama
+    // berulang kali pada dokumen besar (perf kilas baik untuk skripsi ribuan kata unik).
+    private static stemCache = new Map<string, string>();
+    private static foreignCache = new Map<string, boolean>();
 
     public static async init(): Promise<void> {
         if (this.kbbiDict) return;
         try {
             const res = await fetch(ENV.DICTIONARY_JSON_URL);
             if (!res.ok) throw new Error("Gagal memuat kamus offline KBBI");
-            const words = await res.json();
-            this.kbbiDict = new Set(words);
+            const words: string[] = await res.json();
+            this.kbbiDict = new Set(words.map((w: string) => String(w).toLowerCase()));
         } catch (e) {
             console.error("Gagal inisialisasi KBBI:", e);
             throw e;
         }
+    }
+
+    /**
+     * Membersihkan kata dan memecah istilah bersufiks/berslash/hyphen
+     * (mis. "pasca-pandemi", "ekstrakurikuler") menjadi token per bagian.
+     * Mengembalikan array token huruf saja.
+     */
+    private static tokenizeWord(word: string): string[] {
+        // Pecah berdasarkan tanda hubung, garis miring, spasi.
+        const parts = word.split(/[-\/\s]+/);
+        const tokens: string[] = [];
+        for (const part of parts) {
+            const letters = part.toLowerCase().match(/[a-z]+/g);
+            if (letters) {
+                for (const token of letters) {
+                    if (token.length > ENV.MIN_WORD_LENGTH) {
+                        tokens.push(token);
+                    }
+                }
+            }
+        }
+        return tokens;
     }
 
     public static isForeignWord(word: string): boolean {
@@ -24,41 +50,60 @@ export class DictionaryService {
             console.warn("Kamus KBBI belum dimuat! Panggil init() terlebih dahulu.");
             return false;
         }
-        
-        const cleanWord = word.toLowerCase().trim();
-        
-        if (cleanWord.length <= ENV.MIN_WORD_LENGTH) {
+
+        const cacheKey = word.toLowerCase().trim();
+        if (this.foreignCache.has(cacheKey)) {
+            return this.foreignCache.get(cacheKey)!;
+        }
+
+        const tokens = this.tokenizeWord(cacheKey);
+        if (tokens.length === 0) {
+            this.foreignCache.set(cacheKey, false);
             return false;
         }
-        
-        const baseWord = this.stemmer.stem(cleanWord);
-        
-        if (this.kbbiDict.has(cleanWord) || this.kbbiDict.has(baseWord)) {
-            return false;
+
+        // Sebuah istilah dianggap asing bila SALAH SATU bagiannya tidak ada di KBBI.
+        // Ini menangkap kata majemuk/berslash yang selama ini luput.
+        for (const token of tokens) {
+            let baseWord: string;
+            const cached = this.stemCache.get(token);
+            if (cached !== undefined) {
+                baseWord = cached;
+            } else {
+                baseWord = this.stemmer.stem(token) ?? token;
+                this.stemCache.set(token, baseWord);
+            }
+            if (this.kbbiDict.has(token) || this.kbbiDict.has(baseWord)) {
+                this.foreignCache.set(cacheKey, false);
+                return false;
+            }
         }
-        
+
+        this.foreignCache.set(cacheKey, true);
         return true;
     }
 
+    /**
+     * Ekstraksi kata asing. Bila matchCase=false, hasil selalu huruf kecil.
+     * Kesalahan saat memuat kamus melempar error nyata, tidak disamarkan
+     * menjadi pseudo-kata "debug_api_error_...".
+     */
     public static async extractForeignWordsFromText(text: string, matchCase: boolean = false): Promise<Set<string>> {
         const foreignWords = new Set<string>();
         if (!text) return foreignWords;
 
-        try {
-            await this.init();
+        await this.init();
 
-            const allWordsInDoc = text.match(/[a-zA-Z]+/g) || [];
-            const uniqueWords = matchCase 
-                ? Array.from(new Set(allWordsInDoc))
-                : Array.from(new Set(allWordsInDoc.map(w => w.toLowerCase())));
+        const allRawWords = text.match(/[a-zA-Z][a-zA-Z-\/]*/g) || [];
+        const uniqueWords = matchCase
+            ? Array.from(new Set(allRawWords))
+            : Array.from(new Set(allRawWords.map(w => w.toLowerCase())));
 
-            for (const word of uniqueWords) {
-                if (this.isForeignWord(word)) {
-                    foreignWords.add(word);
-                }
+        for (const word of uniqueWords) {
+            if (this.isForeignWord(word)) {
+                // Simpan token per bagian agar search kata sesuai istilah utuh.
+                foreignWords.add(word);
             }
-        } catch (e: any) {
-            foreignWords.add("debug_api_error_" + e.message.replace(/\s+/g, '_'));
         }
 
         return foreignWords;

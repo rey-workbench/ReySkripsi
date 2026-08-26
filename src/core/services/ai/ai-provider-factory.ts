@@ -1,6 +1,6 @@
-import { IAiService } from './iai-service';
-import { GeminiService } from './gemini-service';
-import { NvidiaService } from './nvidia-service';
+import { IAiService } from '@/core/services/ai/iai-service';
+import { GeminiService } from '@/core/services/ai/gemini-service';
+import { NvidiaService } from '@/core/services/ai/nvidia-service';
 
 export class AiProviderFactory {
     public static getService(model: string): IAiService {
@@ -9,8 +9,9 @@ export class AiProviderFactory {
         } else if (model.includes('minimax') || model.startsWith('meta/')) {
             return new NvidiaService();
         }
-        
-        // Default fallback
-        return new GeminiService();
+
+        // Jangan membisu ke Gemini saat model tak dikenal — bisa menyebabkan
+        // error JSON yang membingungkan (model non-Gemini dipanggil ke Gemini).
+        throw new Error(`Model AI tidak dikenali: “${model}”. Pilih model dari daftar yang tersedia.`);
     }
 }

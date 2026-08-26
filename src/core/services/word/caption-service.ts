@@ -1,6 +1,7 @@
 /// <reference types="office-js" />
-import { AiOrchestrator } from '../ai/ai-orchestrator';
-import { AiModel, DEFAULT_AI_MODEL } from '../ai/ai-models';
+import { AiOrchestrator } from '@/core/services/ai/ai-orchestrator';
+import { AiModel, DEFAULT_AI_MODEL } from '@/core/services/ai/ai-models';
+import { cleanCaptionTitle, extractChapterNumber, parseAiCaptionTitles } from '@/core/utils/caption';
 
 export interface ICaptionStyleOptions {
   isBold?: boolean;
@@ -10,43 +11,6 @@ export interface ICaptionStyleOptions {
 }
 
 export class CaptionService {
-  /**
-   * Mengonversi Angka Romawi ke Angka Arab (misal "III" -> 3)
-   */
-  private static romanToArabic(romanStr: string): number {
-    const romanMap: { [key: string]: number } = {
-      I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000
-    };
-    const cleanRoman = romanStr.trim().toUpperCase();
-    let num = 0;
-    for (let i = 0; i < cleanRoman.length; i++) {
-      const current = romanMap[cleanRoman[i]] || 0;
-      const next = romanMap[cleanRoman[i + 1]] || 0;
-      if (current < next) {
-        num -= current;
-      } else {
-        num += current;
-      }
-    }
-    return num || 1;
-  }
-
-  /**
-   * Mendeteksi Bab saat ini dari teks paragraf dokumen sebelum lokasi kursor.
-   */
-  public static extractChapterNumber(text: string): number {
-    const matches = Array.from(text.matchAll(/BAB\s+([IVXLCDM\d]+)/gi));
-    if (!matches || matches.length === 0) return 1;
-
-    const lastMatch = matches[matches.length - 1];
-    const rawChapter = lastMatch[1].trim();
-
-    if (/^\d+$/.test(rawChapter)) {
-      return parseInt(rawChapter, 10);
-    }
-    return this.romanToArabic(rawChapter);
-  }
-
   private static getWordAlignment(alignStr?: string): Word.Alignment {
     if (alignStr === 'left') return Word.Alignment.left;
     if (alignStr === 'right') return Word.Alignment.right;
@@ -142,12 +106,7 @@ export class CaptionService {
     
     try {
       const result = await AiOrchestrator.generateResponse(prompt, apiKey, model);
-      let cleanTitle = result.replace(/^["'「」]+|["'「」]+$/g, '').trim();
-      const words = cleanTitle.split(/\s+/);
-      if (words.length > 4) {
-        cleanTitle = words.slice(0, 4).join(" ");
-      }
-      return cleanTitle;
+      return cleanCaptionTitle(result);
     } catch (e) {
       console.warn("Gagal membuat AI caption desc:", e);
       return "";
@@ -176,12 +135,7 @@ export class CaptionService {
       const resultText = await AiOrchestrator.generateResponse(prompt, apiKey, model);
       const jsonMatch = resultText.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
-        const parsedTitles: string[] = JSON.parse(jsonMatch[0]);
-        return parsedTitles.map(t => {
-          let clean = t.replace(/^["'「」]+|["'「」]+$/g, '').trim();
-          const words = clean.split(/\s+/);
-          return words.length > 4 ? words.slice(0, 4).join(" ") : clean;
-        });
+        return parseAiCaptionTitles(jsonMatch[0]);
       }
     } catch (e) {
       console.warn("Gagal batch prompt AI caption titles:", e);
@@ -242,36 +196,13 @@ export class CaptionService {
       parentParagraph.load("font/size");
 
       await context.sync();
-
-      const currentChapter = this.extractChapterNumber(documentUpToCursor.text);
+      const currentChapter = extractChapterNumber(documentUpToCursor.text);
       const labelPrefix = `${label} ${currentChapter}. `;
-
-      const targetFontName = "Times New Roman";
-      const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
 
       const insertLocation = label === 'Tabel' ? Word.InsertLocation.before : Word.InsertLocation.after;
       const targetParagraph = selection.paragraphs.getFirst();
       const insertedParagraph = targetParagraph.insertParagraph(labelPrefix, insertLocation);
-      insertedParagraph.font.bold = options?.isBold !== undefined ? options.isBold : true;
-      insertedParagraph.font.italic = options?.isItalic !== undefined ? options.isItalic : false;
-      insertedParagraph.font.name = targetFontName;
-      insertedParagraph.font.size = targetFontSize;
-      insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
-
-      // SEQ field me-render angka urut (1, 2, dst). Tidak perlu menambahkan angka hardcoded lagi.
-      const endOfLabel = insertedParagraph.getRange("End");
-
-      if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
-        endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `${label} \\s ${currentChapter}`, true);
-      } else {
-        endOfLabel.insertText("1", Word.InsertLocation.after);
-      }
-
-      if (captionTitle) {
-        const afterSeqRange = insertedParagraph.getRange("End");
-        const addedTitleRange = afterSeqRange.insertText(` ${captionTitle}`, Word.InsertLocation.after);
-        addedTitleRange.font.name = targetFontName;
-      }
+      this.applyCaptionFormatting(insertedParagraph, label, currentChapter, captionTitle, options, parentParagraph.font.size);
 
       await context.sync();
       captionTextInserted = `${labelPrefix} ${captionTitle}`;
@@ -331,33 +262,11 @@ export class CaptionService {
 
         await context.sync();
 
-        const chapter = this.extractChapterNumber(docUpToTable.text);
+        const chapter = extractChapterNumber(docUpToTable.text);
         const labelPrefix = `Tabel ${chapter}. `;
 
-        const targetFontName = "Times New Roman";
-        const targetFontSize = options?.customFontSize || parentParagraph.font.size || 12;
-
         const insertedParagraph = table.insertParagraph(labelPrefix, Word.InsertLocation.before);
-        insertedParagraph.font.bold = options?.isBold !== undefined ? options.isBold : true;
-        insertedParagraph.font.italic = options?.isItalic !== undefined ? options.isItalic : false;
-        insertedParagraph.font.name = targetFontName;
-        insertedParagraph.font.size = targetFontSize;
-        insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
-
-        const endOfLabel = insertedParagraph.getRange("End");
-
-        if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
-          endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `Tabel \\s ${chapter}`, true);
-        } else {
-          endOfLabel.insertText("1", Word.InsertLocation.after);
-        }
-
-        const aiTitle = aiTitlesBatch[i];
-        if (aiTitle) {
-          const afterSeqRange = insertedParagraph.getRange("End");
-          const addedTitleRange = afterSeqRange.insertText(` ${aiTitle}`, Word.InsertLocation.after);
-          addedTitleRange.font.name = targetFontName;
-        }
+        this.applyCaptionFormatting(insertedParagraph, 'Tabel', chapter, aiTitlesBatch[i] || '', options, parentParagraph.font.size);
 
         processedCount++;
       }
@@ -369,5 +278,42 @@ export class CaptionService {
     await this.updateOrCreateTableOfFigures('Tabel');
 
     return processedCount;
+  }
+
+  /**
+   * Format paragraf caption yang baru disisipkan: font, alignment, SEQ Field,
+   * dan judul. Dipakai bersama oleh insertCaptionForSelection & autoCaptionAllTables.
+   */
+  private static applyCaptionFormatting(
+    insertedParagraph: Word.Paragraph,
+    label: 'Tabel' | 'Gambar',
+    chapter: number,
+    title: string,
+    options: ICaptionStyleOptions | undefined,
+    parentFontSize: number | null | undefined
+  ): void {
+    const targetFontName = "Times New Roman";
+    const targetFontSize = options?.customFontSize || parentFontSize || 12;
+
+    insertedParagraph.font.bold = options?.isBold !== undefined ? options.isBold : true;
+    insertedParagraph.font.italic = options?.isItalic !== undefined ? options.isItalic : false;
+    insertedParagraph.font.name = targetFontName;
+    insertedParagraph.font.size = targetFontSize;
+    insertedParagraph.alignment = this.getWordAlignment(options?.alignment);
+
+    // SEQ field me-render angka urut (1, 2, dst). Tidak perlu menambahkan angka hardcoded lagi.
+    const endOfLabel = insertedParagraph.getRange("End");
+
+    if (Office.context.requirements.isSetSupported('WordApi', '1.4')) {
+      endOfLabel.insertField(Word.InsertLocation.after, Word.FieldType.seq, `${label} \\s ${chapter}`, true);
+    } else {
+      endOfLabel.insertText("1", Word.InsertLocation.after);
+    }
+
+    if (title) {
+      const afterSeqRange = insertedParagraph.getRange("End");
+      const addedTitleRange = afterSeqRange.insertText(` ${title}`, Word.InsertLocation.after);
+      addedTitleRange.font.name = targetFontName;
+    }
   }
 }

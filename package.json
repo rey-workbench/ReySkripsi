@@ -21,6 +21,8 @@
     "prettier": "office-addin-lint prettier",
     "signin": "office-addin-dev-settings m365-account login",
     "signout": "office-addin-dev-settings m365-account logout",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "start": "office-addin-debugging start manifest.xml",
     "stop": "office-addin-debugging stop manifest.xml",
     "validate": "office-addin-manifest validate manifest.xml",
@@ -48,14 +50,17 @@
     "office-addin-manifest": "^2.0.3",
     "style-loader": "^4.0.0",
     "typescript": "^5.4.2",
+    "vitest": "^4.1.11",
     "webpack": "^5.95.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "5.1.0"
   },
+
   "prettier": "office-addin-prettier-config",
   "browserslist": [
     "last 2 versions",
-    "ie 11"
+    "not dead",
+    "> 0.5%"
   ],
   "pnpm": {
     "allowedDeprecatedVersions": {
