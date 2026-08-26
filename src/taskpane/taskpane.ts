@@ -5,6 +5,7 @@
 
 /// <reference types="office-js" />
 import { AutoUpdater } from '@/core/services/system/auto-updater';
+import { DictionaryService } from '@/core/services/dictionary/dictionary-service';
 import { AppRouter } from '@/core/app-router';
 import { AutoLanguageModule, BatchManualModule, AiChatbotModule, AutoCaptionModule, SettingsModule } from '@/modules/index';
 import '@/taskpane/taskpane.css';
@@ -25,5 +26,7 @@ Office.onReady((info) => {
     app.start();
 
     new AutoUpdater().start();
+
+    DictionaryService.init().catch(() => {});
   }
 });
