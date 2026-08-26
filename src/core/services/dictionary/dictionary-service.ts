@@ -11,10 +11,13 @@ export class DictionaryService {
     public static async init(): Promise<void> {
         if (this.kbbiDict) return;
         try {
-            const res = await fetch(ENV.DICTIONARY_JSON_URL);
+            const res = await fetch(ENV.DICTIONARY_URL);
             if (!res.ok) throw new Error("Gagal memuat kamus offline KBBI");
-            const words: string[] = await res.json();
-            this.kbbiDict = new Set(words.map((w: string) => String(w).toLowerCase()));
+            // Format newline-delimited: 1 kata per baris — parse lebih cepat daripada JSON.
+            const text = await res.text();
+            this.kbbiDict = new Set(
+                text.split("\n").map((w: string) => w.trim().toLowerCase()).filter(Boolean)
+            );
         } catch (e) {
             console.error("Gagal inisialisasi KBBI:", e);
             throw e;

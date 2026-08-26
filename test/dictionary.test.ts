@@ -12,7 +12,7 @@ const KBBI_MINI = [
 function stubFetch(words: string[]) {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
     ok: true,
-    json: async () => words,
+    text: async () => words.join('\n'),
   }));
 }
 

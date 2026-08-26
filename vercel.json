@@ -8,5 +8,16 @@
       "source": "/api/nvidia",
       "destination": "https://integrate.api.nvidia.com/v1/chat/completions"
     }
+  ],
+  "headers": [
+    {
+      "source": "/assets/kbbi-words.txt",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
+      ]
+    }
   ]
 }
