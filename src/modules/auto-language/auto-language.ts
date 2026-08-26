@@ -47,18 +47,23 @@ export class AutoLanguageModule implements IModule {
         await DictionaryService.init();
         ToastService.hide();
 
-        WordService.processWithConfirmation(wholeDocument, async (range, isDryRun, token, onProgress) => {
-          range.load("text");
-          await range.context.sync();
-          
-          const foreignWords = await DictionaryService.extractForeignWordsFromText(range.text, false);
-          const wordsToMatch = Array.from(foreignWords);
+        // Ekstrak kata asing sekali; dipakai ulang oleh fase dry-run & eksekusi.
+        let wordsToMatch: string[] | null = null;
 
-          if (wordsToMatch.length === 0) {
+        WordService.processWithConfirmation(wholeDocument, async (range, isDryRun, token, onProgress, searchCache) => {
+          if (!wordsToMatch) {
+            range.load("text");
+            await range.context.sync();
+
+            const foreignWords = await DictionaryService.extractForeignWordsFromText(range.text, false);
+            wordsToMatch = Array.from(foreignWords);
+
+            if (wordsToMatch.length === 0) {
               return 0;
+            }
           }
 
-          return await WordScannerService.scanAndFormat(range, wordsToMatch, false, isDryRun, token, onProgress);
+          return await WordScannerService.scanAndFormat(range, wordsToMatch, false, isDryRun, token, onProgress, searchCache);
         });
     } catch (e) {
         const error = e as Error;

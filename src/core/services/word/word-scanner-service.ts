@@ -9,7 +9,7 @@ type SearchHit = {
   parentContentControlOrNullObject: { isNullObject: boolean };
 };
 
-type SearchCollectionLike = { items: SearchHit[] };
+export type SearchCollectionLike = { items: SearchHit[] };
 
 export class WordScannerService {
     public static async scanAndFormat(
@@ -18,7 +18,8 @@ export class WordScannerService {
         matchCase: boolean,
         isDryRun: boolean,
         cancellationToken?: ICancellationToken,
-        onProgress?: TProgressCallback
+        onProgress?: TProgressCallback,
+        searchCache?: Map<string, SearchCollectionLike>
     ): Promise<number> {
         let count = 0;
         let hasChanges = false;
@@ -38,11 +39,20 @@ export class WordScannerService {
             for (const targetWord of batch) {
                 if (cancellationToken?.isCancelled) break;
 
-                const searchResults = range.search(targetWord, {
-                    matchWholeWord: true,
-                    matchCase: matchCase
-                });
-                searchResults.load("items/font, items/style, items/parentContentControlOrNullObject, items/parentBody/type");
+                // Gunakan hasil pencarian fase dry-run agar tidak mencari ulang saat eksekusi.
+                const cached = searchCache?.get(targetWord);
+                let searchResults: SearchCollectionLike;
+                if (cached) {
+                    searchResults = cached;
+                } else {
+                    const fresh = range.search(targetWord, {
+                        matchWholeWord: true,
+                        matchCase: matchCase
+                    });
+                    fresh.load("items/font, items/style, items/parentContentControlOrNullObject, items/parentBody/type");
+                    searchResults = fresh;
+                    searchCache?.set(targetWord, fresh);
+                }
                 batchResults.push(searchResults);
 
                 searchCount++;

@@ -1,13 +1,14 @@
 /// <reference types="office-js" />
 import { ModalService } from '@/core/services/ui/modal-service';
 import { ICancellationToken, TProgressCallback } from '@/core/interfaces';
+import { SearchCollectionLike } from '@/core/services/word/word-scanner-service';
 
 export class WordService {
   private static isProcessing = false;
 
   public static async processWithConfirmation(
     wholeDocument: boolean,
-    scanner: (range: Word.Range | Word.Body | Word.Paragraph, isDryRun: boolean, token: ICancellationToken, onProgress: TProgressCallback) => Promise<number>
+    scanner: (range: Word.Range | Word.Body | Word.Paragraph, isDryRun: boolean, token: ICancellationToken, onProgress: TProgressCallback, searchCache: Map<string, SearchCollectionLike>) => Promise<number>
   ): Promise<void> {
     if (this.isProcessing) {
       ModalService.showAlert("Info", "Ada proses yang sedang berjalan. Harap tunggu...");
@@ -29,7 +30,9 @@ export class WordService {
 
         const range = await this.getTargetRange(context, wholeDocument);
         if (!range) return;
-        totalMatches += await scanner(range, true, cancellationToken, progressCallback);
+
+        const searchCache = new Map<string, SearchCollectionLike>();
+        totalMatches += await scanner(range, true, cancellationToken, progressCallback, searchCache);
 
         ModalService.hideProgress();
 
@@ -53,7 +56,7 @@ export class WordService {
         let appliedCount = 0;
         const execRange = await this.getTargetRange(context, wholeDocument);
         if (execRange) {
-          appliedCount += await scanner(execRange, false, cancellationToken, progressCallback);
+          appliedCount += await scanner(execRange, false, cancellationToken, progressCallback, searchCache);
         }
 
         ModalService.hideProgress();

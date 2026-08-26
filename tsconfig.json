@@ -23,7 +23,8 @@
     "node_modules",
     "dist",
     "lib",
-    "lib-amd"
+    "lib-amd",
+    "vitest.config.ts"
   ],
   "ts-node": { 
     "files": true 
