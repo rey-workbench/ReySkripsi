@@ -3,6 +3,10 @@ import { DictionaryService } from '@/core/services/dictionary/dictionary-service
 import { WordScannerService } from '@/core/services/word/word-scanner-service';
 import { ToastService } from '@/core/services/ui/toast-service';
 
+export type TRevertAction = 
+  | { type: 'insertText'; insertedText: string; previousText: string }
+  | { type: 'formatForeignWordsItalic'; formattedWords: string[] };
+
 export const WORD_TOOLS: IAiToolDefinition[] = [
   {
     name: 'insertText',
@@ -27,6 +31,69 @@ export const WORD_TOOLS: IAiToolDefinition[] = [
   },
 ];
 
+let lastAiAction: TRevertAction | null = null;
+
+export function getLastAiAction(): TRevertAction | null {
+    return lastAiAction;
+}
+
+export async function revertLastAiAction(): Promise<boolean> {
+    if (!lastAiAction) {
+        ToastService.show("Tidak ada perubahan AI yang dapat dibatalkan.", true);
+        return false;
+    }
+
+    try {
+        if (lastAiAction.type === 'insertText') {
+            const { insertedText, previousText } = lastAiAction;
+            await Word.run(async (context) => {
+                const searchResults = context.document.body.search(insertedText.substring(0, 100), {
+                    matchCase: true,
+                    matchWholeWord: false
+                });
+                searchResults.load('items');
+                await context.sync();
+
+                if (searchResults.items.length > 0) {
+                    searchResults.items[0].insertText(previousText, Word.InsertLocation.replace);
+                    await context.sync();
+                    ToastService.show("Perubahan teks AI berhasil dibatalkan (Revert sukses).");
+                } else {
+                    ToastService.show("Teks hasil AI tidak ditemukan atau sudah dimodifikasi.", true);
+                }
+            });
+            lastAiAction = null;
+            return true;
+        } else if (lastAiAction.type === 'formatForeignWordsItalic') {
+            const { formattedWords } = lastAiAction;
+            await Word.run(async (context) => {
+                const body = context.document.body;
+                for (const word of formattedWords) {
+                    const searchResults = body.search(word, {
+                        matchCase: false,
+                        matchWholeWord: true
+                    });
+                    searchResults.load('items/font');
+                    await context.sync();
+
+                    for (const item of searchResults.items) {
+                        item.font.italic = false;
+                    }
+                    await context.sync();
+                }
+                ToastService.show(`Format miring pada ${formattedWords.length} kata berhasil dibatalkan.`);
+            });
+            lastAiAction = null;
+            return true;
+        }
+    } catch (e) {
+        const error = e as Error;
+        ToastService.show(`Gagal membatalkan perubahan AI: ${error.message}`, true);
+        return false;
+    }
+    return false;
+}
+
 export async function executeWordTool(name: string, args: Record<string, unknown>): Promise<unknown> {
     switch (name) {
         case 'insertText': {
@@ -38,9 +105,20 @@ export async function executeWordTool(name: string, args: Record<string, unknown
 
             return await Word.run(async (context) => {
                 const selection = context.document.getSelection();
+                selection.load('text');
+                await context.sync();
+
+                const previousText = selection.text || '';
                 selection.insertText(text, Word.InsertLocation.replace);
                 await context.sync();
-                ToastService.show("Berhasil menyisipkan teks.");
+
+                lastAiAction = {
+                    type: 'insertText',
+                    insertedText: text,
+                    previousText
+                };
+
+                ToastService.show("Berhasil menyisipkan teks. Anda dapat membatalkan melalui tombol Revert.");
                 return { insertedChars: text.length };
             });
         }
@@ -60,7 +138,11 @@ export async function executeWordTool(name: string, args: Record<string, unknown
                 }
 
                 const count = await WordScannerService.scanAndFormat(body, wordsList, false, false);
-                ToastService.show(`Selesai memiringkan ${count} kata asing di dokumen.`);
+                lastAiAction = {
+                    type: 'formatForeignWordsItalic',
+                    formattedWords: wordsList
+                };
+                ToastService.show(`Selesai memiringkan ${count} kata asing di dokumen. Anda dapat membatalkan via Revert.`);
                 return { formattedCount: count };
             });
         }

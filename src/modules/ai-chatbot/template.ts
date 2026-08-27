@@ -21,20 +21,25 @@ export class ChatTemplate {
         }).join('');
 
         return `
-            <div class="module-header" style="display: flex; align-items: center; margin-bottom: 24px;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; flex-shrink: 0;">
-                    <defs>
-                        <linearGradient id="ai-star-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#8b5cf6"/>
-                            <stop offset="50%" stop-color="#3b82f6"/>
-                            <stop offset="100%" stop-color="#0ea5e9"/>
-                        </linearGradient>
-                    </defs>
-                    <path d="M11.5 0C11.5 5.5 16.5 10.5 22 10.5C16.5 10.5 11.5 15.5 11.5 21C11.5 15.5 6.5 10.5 1 10.5C6.5 10.5 11.5 5.5 11.5 0Z" fill="url(#ai-star-grad)"/>
-                </svg>
-                <div>
-                    <h3 class="ms-font-l" style="margin: 0; color: #111827;">Ask AI</h3>
+            <div class="module-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; flex-shrink: 0;">
+                        <defs>
+                            <linearGradient id="ai-star-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#8b5cf6"/>
+                                <stop offset="50%" stop-color="#3b82f6"/>
+                                <stop offset="100%" stop-color="#0ea5e9"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M11.5 0C11.5 5.5 16.5 10.5 22 10.5C16.5 10.5 11.5 15.5 11.5 21C11.5 15.5 6.5 10.5 1 10.5C6.5 10.5 11.5 5.5 11.5 0Z" fill="url(#ai-star-grad)"/>
+                    </svg>
+                    <div>
+                        <h3 class="ms-font-l" style="margin: 0; color: #111827;">Ask AI</h3>
+                    </div>
                 </div>
+                <button id="ai-btn-revert" style="display: none; align-items: center; gap: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600; color: #b91c1c; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 12px; cursor: pointer; transition: all 0.2s;" title="Batalkan perubahan dokumen terakhir yang dilakukan AI">
+                    <i class="ms-Icon ms-Icon--Undo" style="font-size: 11px;"></i> Revert AI
+                </button>
             </div>
             
             <div class="module-content" style="display: flex; flex-direction: column; height: calc(100vh - 120px);">

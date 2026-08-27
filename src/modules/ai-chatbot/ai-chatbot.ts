@@ -6,7 +6,7 @@ import { IAiMessage, IAiRequestOptions } from '@/core/services/ai/iai-service';
 import { StorageService, STORAGE_KEYS } from '@/core/services/storage/storage-service';
 import { AI_MODEL_LIST, DEFAULT_AI_MODEL, isNvidiaModel } from '@/core/services/ai/ai-models';
 import { ChatTemplate, AiSkill } from '@/modules/ai-chatbot/template';
-import { WORD_TOOLS, executeWordTool, jumpToText } from '@/modules/ai-chatbot/word-tools';
+import { WORD_TOOLS, executeWordTool, jumpToText, revertLastAiAction, getLastAiAction } from '@/modules/ai-chatbot/word-tools';
 
 marked.setOptions({ breaks: true, gfm: true });
 
@@ -125,6 +125,16 @@ export class AiChatbotModule implements IModule {
             if (modelMenu) modelMenu.style.display = "none";
         });
 
+        const revertBtn = document.getElementById("ai-btn-revert");
+        if (revertBtn) {
+            revertBtn.addEventListener("click", async () => {
+                const ok = await revertLastAiAction();
+                if (ok) {
+                    revertBtn.style.display = "none";
+                }
+            });
+        }
+
         const historyContainer = document.getElementById("ai-chat-history");
         if (historyContainer) {
             historyContainer.addEventListener("click", (e) => {
@@ -162,7 +172,7 @@ export class AiChatbotModule implements IModule {
         }
     }
 
-    private appendMessage(sender: "user" | "ai", text: string, citations: string[] = []): HTMLElement {
+    private appendMessage(sender: "user" | "ai", text: string, citations: string[] = [], badgeLabel?: string): HTMLElement {
         const history = document.getElementById("ai-chat-history");
         const emptyState = document.getElementById("ai-chat-empty");
 
@@ -185,6 +195,23 @@ export class AiChatbotModule implements IModule {
             messageEl.style.background = "#0078D4";
             messageEl.style.color = "#ffffff";
             messageEl.style.borderBottomRightRadius = "2px";
+
+            if (badgeLabel) {
+                const badgeEl = document.createElement("div");
+                badgeEl.style.display = "inline-flex";
+                badgeEl.style.alignItems = "center";
+                badgeEl.style.gap = "4px";
+                badgeEl.style.fontSize = "10.5px";
+                badgeEl.style.fontWeight = "600";
+                badgeEl.style.padding = "2px 7px";
+                badgeEl.style.borderRadius = "8px";
+                badgeEl.style.marginBottom = "6px";
+                badgeEl.style.alignSelf = "flex-start";
+                badgeEl.style.background = "rgba(255, 255, 255, 0.22)";
+                badgeEl.style.color = "#ffffff";
+                badgeEl.innerHTML = `<i class="ms-Icon ms-Icon--Lightbulb" style="font-size: 10px;"></i> ${escapeHtml(badgeLabel)}`;
+                messageEl.appendChild(badgeEl);
+            }
         } else {
             messageEl.style.alignSelf = "flex-start";
             messageEl.style.background = "#f3f2f1";
@@ -360,13 +387,11 @@ export class AiChatbotModule implements IModule {
         
         const skill = (skillValueEl?.value || "").trim();
         const skillLabel = (skillTextEl?.innerText || skill).trim();
-        const skillContext = skill ? `[Konteks Skill: ${skillLabel}] ` : "";
         const rawMessage = inputEl.value.trim();
-        const finalMessage = skillContext + rawMessage;
         
-        const userPrompt = finalMessage || DEFAULT_PROMPT;
-        
-        this.appendMessage("user", userPrompt);
+        // Tampilkan pesan pengguna di UI dengan badge skill yang elegan, bukan teks mentah bertanda kurung
+        const userPrompt = rawMessage || DEFAULT_PROMPT;
+        this.appendMessage("user", userPrompt, [], skill ? skillLabel : undefined);
         inputEl.value = "";
         
         this.toggleLoadingState(true);
@@ -450,6 +475,41 @@ Atau ketik pilihan sendiri.`;
                 history: this.chatHistory.slice(-10),
                 ...(isNvidia ? {} : {
                     tools: WORD_TOOLS,
+                    onThought: (thought: string) => {
+                        if (!streamedMsgEl) {
+                            if (loadingMsgEl && loadingMsgEl.parentNode) {
+                                loadingMsgEl.parentNode.removeChild(loadingMsgEl);
+                            }
+                            streamedMsgEl = this.appendMessage("ai", "");
+                            liveBody = streamedMsgEl.querySelector(".ai-message-body") as HTMLElement | null;
+                        }
+                        let thoughtContainer = streamedMsgEl.querySelector(".ai-thought-container") as HTMLDetailsElement | null;
+                        if (!thoughtContainer) {
+                            thoughtContainer = document.createElement("details");
+                            thoughtContainer.className = "ai-thought-container";
+                            thoughtContainer.open = true;
+                            thoughtContainer.style.cssText = "background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; font-size: 11.5px; color: #475569;";
+                            thoughtContainer.innerHTML = `
+                                <summary style="cursor: pointer; font-weight: 600; color: #64748b; display: flex; align-items: center; gap: 6px; user-select: none;">
+                                    <i class="ms-Icon ms-Icon--Lightbulb" style="font-size: 12px; color: #8b5cf6;"></i>
+                                    <span>Proses Berpikir...</span>
+                                </summary>
+                                <div class="ai-thought-content" style="margin-top: 6px; font-family: monospace; white-space: pre-wrap; word-break: break-word; max-height: 160px; overflow-y: auto; line-height: 1.4; color: #64748b;"></div>
+                            `;
+                            if (liveBody) {
+                                streamedMsgEl.insertBefore(thoughtContainer, liveBody);
+                            } else {
+                                streamedMsgEl.prepend(thoughtContainer);
+                            }
+                        }
+                        const thoughtContent = thoughtContainer.querySelector(".ai-thought-content");
+                        if (thoughtContent) {
+                            thoughtContent.textContent = thought;
+                            thoughtContent.scrollTop = thoughtContent.scrollHeight;
+                        }
+                        const history = document.getElementById("ai-chat-history");
+                        if (history) history.scrollTop = history.scrollHeight;
+                    },
                     onStream: (partial: string) => {
                         if (!streamedMsgEl) {
                             if (loadingMsgEl && loadingMsgEl.parentNode) {
@@ -461,6 +521,12 @@ Atau ketik pilihan sendiri.`;
                             liveBody.innerHTML = marked.parse(escapeHtml(partial)) as string;
                             const history = document.getElementById("ai-chat-history");
                             if (history) history.scrollTop = history.scrollHeight;
+                        }
+                        const thoughtContainer = streamedMsgEl.querySelector(".ai-thought-container") as HTMLDetailsElement | null;
+                        if (thoughtContainer && thoughtContainer.open && partial.trim().length > 20) {
+                            thoughtContainer.open = false;
+                            const summaryText = thoughtContainer.querySelector("summary span");
+                            if (summaryText) summaryText.textContent = "Proses Berpikir Selesai";
                         }
                     }
                 })
@@ -487,6 +553,12 @@ Atau ketik pilihan sendiri.`;
                     this.appendOptionButtons(finalTargetEl, aiResponse, liveBody);
                 }
                 this.appendCitations(finalTargetEl, citations);
+                const thoughtContainer = finalTargetEl.querySelector(".ai-thought-container") as HTMLDetailsElement | null;
+                if (thoughtContainer) {
+                    thoughtContainer.open = false;
+                    const summaryText = thoughtContainer.querySelector("summary span");
+                    if (summaryText) summaryText.textContent = "Proses Berpikir (Selesai)";
+                }
             } else {
                 if (loadingMsgEl && loadingMsgEl.parentNode) {
                     loadingMsgEl.parentNode.removeChild(loadingMsgEl);

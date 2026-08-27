@@ -50,6 +50,7 @@ export interface IAiRequestOptions {
   toolCalls?: IAiToolCall[];
   toolResults?: IAiToolResult[];
   onStream?: (text: string) => void;
+  onThought?: (thought: string) => void;
 }
 
 export interface IAiService {

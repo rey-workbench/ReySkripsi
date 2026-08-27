@@ -32,7 +32,7 @@ export class GeminiService implements IAiService {
             const bodyPayload = this.buildPayload(prompt, systemInstruction, options);
 
             if (options?.onStream) {
-                return await this.generateStreaming(apiUrl, bodyPayload, apiKey, options.onStream);
+                return await this.generateStreaming(apiUrl, bodyPayload, apiKey, options.onStream, options.onThought);
             }
 
             const response = await fetchWithTimeout(apiUrl, {
@@ -131,7 +131,13 @@ export class GeminiService implements IAiService {
         return bodyPayload;
     }
 
-    private async generateStreaming(apiUrl: string, body: GeminiPayload, apiKey: string, onStream: (text: string) => void): Promise<{ text: string; toolCalls: IAiToolCall[] }> {
+    private async generateStreaming(
+        apiUrl: string,
+        body: GeminiPayload,
+        apiKey: string,
+        onStream: (text: string) => void,
+        onThought?: (thought: string) => void
+    ): Promise<{ text: string; toolCalls: IAiToolCall[] }> {
         const streamUrl = apiUrl.replace(':generateContent', ':streamGenerateContent') + '?alt=sse';
         const response = await fetchWithTimeout(streamUrl, {
             method: 'POST',
@@ -154,6 +160,7 @@ export class GeminiService implements IAiService {
         const decoder = new TextDecoder();
         let buffer = '';
         let text = '';
+        let thoughtAccumulator = '';
         const toolCalls: IAiToolCall[] = [];
 
         while (true) {
@@ -165,30 +172,41 @@ export class GeminiService implements IAiService {
             while ((nlIdx = buffer.indexOf('\n')) !== -1) {
                 const line = buffer.slice(0, nlIdx).replace(/\r$/, '');
                 buffer = buffer.slice(nlIdx + 1);
-                text = this.consumeSseLine(line, toolCalls, text, onStream);
+                const res = this.consumeSseLine(line, toolCalls, text, thoughtAccumulator, onStream, onThought);
+                text = res.text;
+                thoughtAccumulator = res.thought;
             }
         }
 
         buffer += decoder.decode();
         if (buffer.trim()) {
-            text = this.consumeSseLine(buffer.replace(/\r$/, ''), toolCalls, text, onStream);
+            const res = this.consumeSseLine(buffer.replace(/\r$/, ''), toolCalls, text, thoughtAccumulator, onStream, onThought);
+            text = res.text;
         }
 
         return { text, toolCalls };
     }
 
-    private consumeSseLine(line: string, toolCalls: IAiToolCall[], text: string, onStream: (text: string) => void): string {
+    private consumeSseLine(
+        line: string,
+        toolCalls: IAiToolCall[],
+        text: string,
+        thoughtAccumulator: string,
+        onStream: (text: string) => void,
+        onThought?: (thought: string) => void
+    ): { text: string; thought: string } {
         let nextText = text;
+        let nextThought = thoughtAccumulator;
         const trimmed = line.trim();
-        if (!trimmed.startsWith('data:')) return nextText;
+        if (!trimmed.startsWith('data:')) return { text: nextText, thought: nextThought };
         const data = trimmed.slice(5).trim();
-        if (!data || data === '[DONE]') return nextText;
+        if (!data || data === '[DONE]') return { text: nextText, thought: nextThought };
 
         let chunk: { candidates?: { content: { parts: GeminiPart[] } }[] };
         try {
             chunk = JSON.parse(data);
         } catch {
-            return nextText;
+            return { text: nextText, thought: nextThought };
         }
 
         for (const part of chunk.candidates?.[0]?.content?.parts ?? []) {
@@ -200,7 +218,13 @@ export class GeminiService implements IAiService {
                     thoughtSignature: sig
                 });
             }
-            if (part.thought) continue;
+            if (part.thought) {
+                if (typeof part.text === 'string' && part.text) {
+                    nextThought += part.text;
+                    if (onThought) onThought(nextThought);
+                }
+                continue;
+            }
             if (typeof part.text === 'string' && part.text) {
                 nextText += part.text;
                 onStream(nextText);
@@ -209,6 +233,6 @@ export class GeminiService implements IAiService {
                 onStream(nextText);
             }
         }
-        return nextText;
+        return { text: nextText, thought: nextThought };
     }
 }
