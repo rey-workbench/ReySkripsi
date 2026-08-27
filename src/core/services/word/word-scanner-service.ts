@@ -87,6 +87,11 @@ export class WordScannerService {
                         continue;
                     }
 
+                    // ponytail: lewati yang sudah miring — tanpa ini jumlah mutasi & hitungan konfirmasi menggelembung; biaya utama (jumlah sync Word) tetap
+                    if (ENV.FORMAT_STYLE.ITALIC && item.font.italic) {
+                        continue;
+                    }
+
                     count++;
                     if (!isDryRun) {
                         if (ENV.FORMAT_STYLE.ITALIC) {

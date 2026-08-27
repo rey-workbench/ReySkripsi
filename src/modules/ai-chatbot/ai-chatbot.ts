@@ -198,6 +198,10 @@ export class AiChatbotModule implements IModule {
         textSpan.innerHTML = marked.parse(escapeHtml(text)) as string;
         messageEl.appendChild(textSpan);
 
+        if (sender === "ai") {
+            this.appendOptionButtons(messageEl, text);
+        }
+
         this.appendCitations(messageEl, citations);
 
         if (history) {
@@ -242,6 +246,58 @@ export class AiChatbotModule implements IModule {
         });
 
         el.appendChild(citationsContainer);
+    }
+
+    private appendOptionButtons(el: HTMLElement, text: string): void {
+        const optionRegex = /(?:^|\n)\s*(?:\[([A-Z0-9])\]|([A-Z0-9])[\.\)])\s*([^\n]+)/g;
+        const matches = [...text.matchAll(optionRegex)];
+        if (matches.length === 0) return;
+
+        const optionsContainer = document.createElement("div");
+        optionsContainer.className = "ai-options-container";
+        optionsContainer.style.marginTop = "10px";
+        optionsContainer.style.display = "flex";
+        optionsContainer.style.flexWrap = "wrap";
+        optionsContainer.style.gap = "6px";
+
+        matches.forEach((m) => {
+            const label = m[1] || m[2];
+            const optionText = m[3].trim();
+            const btn = document.createElement("button");
+            btn.className = "ai-option-pill";
+            btn.style.background = "#ffffff";
+            btn.style.border = "1px solid #0078d4";
+            btn.style.color = "#0078d4";
+            btn.style.borderRadius = "16px";
+            btn.style.padding = "4px 10px";
+            btn.style.fontSize = "12px";
+            btn.style.fontWeight = "500";
+            btn.style.cursor = "pointer";
+            btn.style.transition = "all 0.15s ease";
+            btn.innerText = `${label}. ${optionText}`;
+
+            btn.onmouseover = () => {
+                btn.style.background = "#0078d4";
+                btn.style.color = "#ffffff";
+            };
+            btn.onmouseout = () => {
+                btn.style.background = "#ffffff";
+                btn.style.color = "#0078d4";
+            };
+
+            btn.onclick = () => {
+                const inputEl = document.getElementById("ai-chat-input") as HTMLTextAreaElement | null;
+                if (inputEl) {
+                    inputEl.value = optionText;
+                    inputEl.focus();
+                    this.handleSend();
+                }
+            };
+
+            optionsContainer.appendChild(btn);
+        });
+
+        el.appendChild(optionsContainer);
     }
 
     private async getApiKeyAndModel(): Promise<{ apiKey: string, model: string } | null> {
@@ -349,12 +405,20 @@ export class AiChatbotModule implements IModule {
                 }
             });
 
-            const systemInstruction = `Anda adalah asisten AI ahli editor skripsi dan karya ilmiah Indonesia (ReySkripsi). 
+            const systemInstruction = `Anda adalah asisten AI ahli editor skripsi dan karya ilmiah Indonesia (ReySkripsi).
 Jawablah pertanyaan pengguna dengan jelas, akademis, dan terstruktur berdasarkan dokumen Word berikut:
 
 --- KONTEKS DOKUMEN ---
 ${docContext.slice(0, 8000)}
------------------------`;
+-----------------------
+
+PANDUAN INTERAKSI:
+1. Jika Anda memiliki tool (seperti scanDocument atau insertText), langsung eksekusi tool tersebut jika relevan tanpa meminta konfirmasi berulang jika maksud pengguna sudah jelas.
+2. Jika Anda perlu menanyakan pilihan, tindakan lanjutan, atau konfirmasi kepada pengguna, SELALU sediakan opsi pilihan rekomendasi yang jelas dalam format:
+[A] Opsi rekomendasi pertama
+[B] Opsi alternatif kedua
+[C] Opsi alternatif ketiga
+Atau pengguna dapat mengetikkan pilihan sendiri.`;
 
             const isNvidia = isNvidiaModel(config.model);
 
@@ -393,6 +457,7 @@ ${docContext.slice(0, 8000)}
             );
 
             if (liveMsgEl) {
+                this.appendOptionButtons(liveMsgEl, aiResponse);
                 this.appendCitations(liveMsgEl, citations);
             } else {
                 if (loadingMsgEl && loadingMsgEl.parentNode) {

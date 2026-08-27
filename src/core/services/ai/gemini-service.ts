@@ -9,9 +9,11 @@ type GeminiTool =
 type GeminiPart = {
   text?: string;
   thought?: boolean;
+  thought_signature?: string;
+  thoughtSignature?: string;
   executable_code?: { code: string };
   execution_result?: { outcome?: string; output?: string };
-  functionCall?: { name: string; args: Record<string, unknown> };
+  functionCall?: { name: string; args: Record<string, unknown>; thought_signature?: string; thoughtSignature?: string };
   functionResponse?: { name: string; response: unknown };
 };
 
@@ -55,7 +57,14 @@ export class GeminiService implements IAiService {
 
                 const toolCalls: IAiToolCall[] = [];
                 for (const p of parts) {
-                    if (p.functionCall) toolCalls.push({ name: p.functionCall.name, args: p.functionCall.args });
+                    if (p.functionCall) {
+                        const sig = p.thought_signature || p.thoughtSignature || p.functionCall.thought_signature || p.functionCall.thoughtSignature;
+                        toolCalls.push({
+                            name: p.functionCall.name,
+                            args: p.functionCall.args,
+                            thoughtSignature: sig
+                        });
+                    }
                 }
 
                 const text = parts
@@ -88,7 +97,14 @@ export class GeminiService implements IAiService {
                 { role: 'user', parts: [{ text: prompt }] },
                 ...(options?.toolCalls ?? []).map((c) => ({
                     role: 'model',
-                    parts: [{ functionCall: { name: c.name, args: c.args } }],
+                    parts: [{
+                        functionCall: {
+                            name: c.name,
+                            args: c.args,
+                            ...(c.thoughtSignature ? { thought_signature: c.thoughtSignature } : {})
+                        },
+                        ...(c.thoughtSignature ? { thought_signature: c.thoughtSignature } : {})
+                    }],
                 })),
                 ...(options?.toolResults ?? []).map((r) => ({
                     role: 'user',
@@ -177,7 +193,14 @@ export class GeminiService implements IAiService {
         }
 
         for (const part of chunk.candidates?.[0]?.content?.parts ?? []) {
-            if (part.functionCall) toolCalls.push({ name: part.functionCall.name, args: part.functionCall.args });
+            if (part.functionCall) {
+                const sig = part.thought_signature || part.thoughtSignature || part.functionCall.thought_signature || part.functionCall.thoughtSignature;
+                toolCalls.push({
+                    name: part.functionCall.name,
+                    args: part.functionCall.args,
+                    thoughtSignature: sig
+                });
+            }
             if (part.thought) continue;
             if (typeof part.text === 'string' && part.text) {
                 nextText += part.text;

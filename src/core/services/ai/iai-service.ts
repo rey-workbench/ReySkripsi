@@ -28,6 +28,7 @@ export interface IAiToolDefinition {
 export interface IAiToolCall {
   name: string;
   args: Record<string, unknown>;
+  thoughtSignature?: string;
 }
 
 export interface IAiToolResult {
