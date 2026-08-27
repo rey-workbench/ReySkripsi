@@ -6,12 +6,11 @@ import { ToastService } from '@/core/services/ui/toast-service';
 export const WORD_TOOLS: IAiToolDefinition[] = [
   {
     name: 'insertText',
-    description: 'Menyisipkan teks ke dokumen Word. Jika targetHeading diisi (misalnya "ABSTRAK" atau "PENDAHULUAN"), teks akan disisipkan di bawah bagian tersebut. Jika targetHeading tidak diisi, teks disisipkan di posisi kursor.',
+    description: 'Menyisipkan teks ke dokumen Word pada posisi kursor pengguna saat ini.',
     parameters: {
       type: 'object',
       properties: {
-        text: { type: 'string', description: 'Teks lengkap yang akan disisipkan' },
-        targetHeading: { type: 'string', description: 'Judul bagian target di dokumen (misal: "ABSTRAK", "PENDAHULUAN"). Opsional.' }
+        text: { type: 'string', description: 'Teks lengkap yang akan disisipkan' }
       },
       required: ['text'],
     },
@@ -31,36 +30,18 @@ export const WORD_TOOLS: IAiToolDefinition[] = [
 export async function executeWordTool(name: string, args: Record<string, unknown>): Promise<unknown> {
     switch (name) {
         case 'insertText': {
-            const text = String(args.text ?? '');
+            let text = String(args.text ?? '');
             if (!text) return { insertedChars: 0 };
-            const targetHeading = typeof args.targetHeading === 'string' ? args.targetHeading.trim() : '';
+
+            // Bersihkan literal escape '\n' jika model mengoper string ter-escape ganda
+            text = text.replace(/\\n/g, '\n');
 
             return await Word.run(async (context) => {
-                let inserted = false;
-
-                if (targetHeading) {
-                    const searchResults = context.document.body.search(targetHeading, {
-                        matchCase: false,
-                        matchWholeWord: false
-                    });
-                    searchResults.load('items');
-                    await context.sync();
-
-                    if (searchResults.items.length > 0) {
-                        const headingItem = searchResults.items[0];
-                        headingItem.insertParagraph(text, Word.InsertLocation.after);
-                        inserted = true;
-                    }
-                }
-
-                if (!inserted) {
-                    const selection = context.document.getSelection();
-                    selection.insertText(text, Word.InsertLocation.replace);
-                }
-
+                const selection = context.document.getSelection();
+                selection.insertText(text, Word.InsertLocation.replace);
                 await context.sync();
-                ToastService.show(`Berhasil menyisipkan teks${targetHeading ? ` ke bagian ${targetHeading}` : ''}.`);
-                return { insertedChars: text.length, target: targetHeading || 'kursor' };
+                ToastService.show("Berhasil menyisipkan teks.");
+                return { insertedChars: text.length };
             });
         }
         case 'formatForeignWordsItalic': {
