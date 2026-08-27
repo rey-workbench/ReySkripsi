@@ -8,10 +8,8 @@ export interface ButtonProps {
 
 export class Button {
     static render(props: ButtonProps): string {
-        const variantClass = props.variant === 'secondary' ? styles.secondary : styles.primary;
-        
         return `
-            <button id="${props.id}" class="${styles.button} ${variantClass}">
+            <button id="${props.id}" class="${styles.button} ${props.variant === 'secondary' ? styles.secondary : styles.primary}">
                 ${props.text}
             </button>
         `;

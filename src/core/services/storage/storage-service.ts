@@ -10,20 +10,11 @@ function isCryptoAvailable(): boolean {
 }
 
 function bytesToBase64(buffer: Uint8Array): string {
-  let binary = "";
-  for (let i = 0; i < buffer.length; i++) {
-    binary += String.fromCharCode(buffer[i]);
-  }
-  return btoa(binary);
+  return btoa(Array.from(buffer, b => String.fromCharCode(b)).join(""));
 }
 
 function base64ToBytes(b64: string): Uint8Array {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
+  return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
 }
 
 function getOrCreateKey(): Promise<CryptoKey> {
@@ -88,23 +79,11 @@ async function decryptWithCrypto(encrypted: string): Promise<string | null> {
 }
 
 function obfuscate(text: string): string {
-  if (!text) return "";
-  try {
-    const encoded = btoa(encodeURIComponent(text));
-    return encoded.split("").reverse().join("");
-  } catch {
-    return text;
-  }
+  try { return [...btoa(encodeURIComponent(text))].reverse().join(""); } catch { return text; }
 }
 
-function deobfuscate(encryptedText: string): string {
-  if (!encryptedText) return "";
-  try {
-    const reversed = encryptedText.split("").reverse().join("");
-    return decodeURIComponent(atob(reversed));
-  } catch {
-    return encryptedText;
-  }
+function deobfuscate(text: string): string {
+  try { return decodeURIComponent(atob([...text].reverse().join(""))); } catch { return text; }
 }
 
 const DB_NAME = "ReySkripsiSecureDB";
