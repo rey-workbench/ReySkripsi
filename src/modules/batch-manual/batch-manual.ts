@@ -117,7 +117,7 @@ export class BatchManualModule implements IModule {
       return;
     }
 
-    WordService.processWithConfirmation(wholeDocument, async (range, isDryRun, token, onProgress, searchCache) => {
+    void WordService.processWithConfirmation(wholeDocument, async (range, isDryRun, token, onProgress, searchCache) => {
       return await WordScannerService.scanAndFormat(range, wordsToMatch, matchCase, isDryRun, token, onProgress, searchCache);
     });
   }

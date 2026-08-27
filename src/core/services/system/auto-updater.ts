@@ -48,19 +48,20 @@ export class AutoUpdater {
     }
 
     private async checkForUpdates() {
-        if (!this.currentVersion) return;
+        const newVersion = await this.fetchVersion();
+        if (!newVersion) return;
+        if (this.currentVersion === null) {
+            this.currentVersion = newVersion;
+            return;
+        }
 
         const now = Date.now();
         if (now - this.lastCheckAt < this.checkIntervalMs) return;
-        this.lastCheckAt = now;
 
-        const newVersion = await this.fetchVersion();
-        if (newVersion && newVersion !== this.currentVersion) {
+        if (newVersion !== this.currentVersion) {
+            this.lastCheckAt = now;
             ToastService.show("Memperbarui Add-in ke versi terbaru...", true);
-
-            window.setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            window.setTimeout(() => window.location.reload(), 2000);
         }
     }
 }

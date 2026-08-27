@@ -356,26 +356,32 @@ Jawablah pertanyaan pengguna dengan jelas, akademis, dan terstruktur berdasarkan
 ${docContext.slice(0, 8000)}
 -----------------------`;
 
+            const isNvidia = isNvidiaModel(config.model);
+
             const aiOptions: IAiRequestOptions = {
                 history: this.chatHistory.slice(-10),
-                tools: WORD_TOOLS,
-                onStream: (partial) => {
-                    if (!liveMsgEl) {
-                        if (loadingMsgEl && loadingMsgEl.parentNode) {
-                            loadingMsgEl.parentNode.removeChild(loadingMsgEl);
+                ...(isNvidia ? {} : {
+                    tools: WORD_TOOLS,
+                    onStream: (partial: string) => {
+                        if (!liveMsgEl) {
+                            if (loadingMsgEl && loadingMsgEl.parentNode) {
+                                loadingMsgEl.parentNode.removeChild(loadingMsgEl);
+                            }
+                            liveMsgEl = this.appendMessage("ai", partial);
+                            liveBody = liveMsgEl.querySelector(".ai-message-body") as HTMLElement | null;
+                        } else if (liveBody) {
+                            liveBody.innerHTML = marked.parse(escapeHtml(partial)) as string;
+                            const history = document.getElementById("ai-chat-history");
+                            if (history) history.scrollTop = history.scrollHeight;
                         }
-                        liveMsgEl = this.appendMessage("ai", partial);
-                        liveBody = liveMsgEl.querySelector(".ai-message-body") as HTMLElement | null;
-                    } else if (liveBody) {
-                        liveBody.innerHTML = marked.parse(escapeHtml(partial)) as string;
-                        const history = document.getElementById("ai-chat-history");
-                        if (history) history.scrollTop = history.scrollHeight;
                     }
-                }
+                })
             };
-            if (skill === AiSkill.SEARCH) aiOptions.searchGrounding = true;
-            if (skill === AiSkill.THINKING) aiOptions.thinking = true;
-            if (skill === AiSkill.CODE) aiOptions.codeExecution = true;
+            if (!isNvidia) {
+                if (skill === AiSkill.SEARCH) aiOptions.searchGrounding = true;
+                if (skill === AiSkill.THINKING) aiOptions.thinking = true;
+                if (skill === AiSkill.CODE) aiOptions.codeExecution = true;
+            }
 
             const aiResponse = await AiOrchestrator.generateResponse(
                 userPrompt,
@@ -383,7 +389,7 @@ ${docContext.slice(0, 8000)}
                 config.model,
                 systemInstruction,
                 aiOptions,
-                executeWordTool
+                isNvidia ? undefined : executeWordTool
             );
 
             if (liveMsgEl) {

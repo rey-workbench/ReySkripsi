@@ -49,7 +49,7 @@ export class AutoLanguageModule implements IModule {
 
         let wordsToMatch: string[] | null = null;
 
-        WordService.processWithConfirmation(wholeDocument, async (range, isDryRun, token, onProgress, searchCache) => {
+        await WordService.processWithConfirmation(wholeDocument, async (range, isDryRun, token, onProgress, searchCache) => {
           if (!wordsToMatch) {
             range.load("text");
             await range.context.sync();

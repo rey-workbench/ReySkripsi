@@ -59,7 +59,7 @@ export async function jumpToText(searchText: string): Promise<void> {
             await context.sync();
 
             if (searchResults.items.length > 0) {
-                searchResults.items[searchResults.items.length - 1].select();
+                searchResults.items[0].select();
                 await context.sync();
                 ToastService.show("Teks referensi ditemukan.", false);
             } else {

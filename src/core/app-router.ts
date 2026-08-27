@@ -49,19 +49,17 @@ export class AppRouter {
             });
         });
 
-        setTimeout(() => {
-            this.modules.forEach(mod => {
-                mod.onInit();
-                
-                const moduleContainer = document.getElementById(mod.id);
-                if (moduleContainer) {
-                    const backBtn = moduleContainer.querySelector('[data-back-button="true"]');
-                    if (backBtn) {
-                        backBtn.addEventListener("click", () => this.goHome());
-                    }
+        this.modules.forEach(mod => {
+            mod.onInit();
+            
+            const moduleContainer = document.getElementById(mod.id);
+            if (moduleContainer) {
+                const backBtn = moduleContainer.querySelector('[data-back-button="true"]');
+                if (backBtn) {
+                    backBtn.addEventListener("click", () => this.goHome());
                 }
-            });
-        }, 50);
+            }
+        });
     }
 
     public openModule(moduleId: string) {

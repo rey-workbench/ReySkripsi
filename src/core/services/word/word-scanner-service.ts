@@ -35,8 +35,11 @@ export class WordScannerService {
             const batch = wordsToMatch.slice(batchStart, batchStart + SEARCH_BATCH_SIZE);
             const batchResults: SearchCollectionLike[] = [];
 
-            for (const targetWord of batch) {
+            for (const rawTarget of batch) {
                 if (cancellationToken?.isCancelled) break;
+
+                const targetWord = rawTarget.replace(/[*?]/g, '').trim();
+                if (!targetWord) continue;
 
                 const cached = searchCache?.get(targetWord);
                 let searchResults: SearchCollectionLike;
