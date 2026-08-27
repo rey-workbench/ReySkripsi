@@ -429,13 +429,14 @@ export class AiChatbotModule implements IModule {
 Jawablah pertanyaan pengguna dengan jelas, akademis, dan terstruktur berdasarkan dokumen Word berikut:
 
 --- KONTEKS DOKUMEN ---
-${docContext.slice(0, 8000)}
+${docContext.slice(0, 32000)}
 -----------------------
 
 PANDUAN INTERAKSI:
-1. Jika pengguna meminta tindakan pada dokumen dan tool tersedia (seperti scanDocument atau insertText), LANGSUNG jalankan tool tersebut tanpa meminta izin atau konfirmasi terlebih dahulu.
-2. JANGAN mengubah daftar bernomor penjelasan materi (misal: "1. Plagiarisme: ...") menjadi opsi pilihan.
-3. HANYA sertakan opsi jika Anda benar-benar memerlukan keputusan atau arah selanjutnya dari pengguna. Letakkan di paling akhir pesan dengan format persis:
+1. Jika pengguna meminta tindakan pada dokumen dan tool tersedia (seperti formatForeignWordsItalic, scanDocument, atau insertText), LANGSUNG panggil tool tersebut. JANGAN hanya mengklaim selesai dalam teks tanpa memanggil tool!
+2. Jika pengguna meminta menyisipkan atau memperbarui bagian dokumen seperti abstrak, panggil tool insertText dengan parameter targetHeading yang sesuai (misalnya targetHeading: "ABSTRAK").
+3. JANGAN mengubah daftar bernomor penjelasan materi (misal: "1. Plagiarisme: ...") menjadi opsi pilihan.
+4. HANYA sertakan opsi jika Anda benar-benar memerlukan keputusan atau arah selanjutnya dari pengguna. Letakkan di paling akhir pesan dengan format persis:
 [A] Judul Opsi Pertama - Penjelasan singkat
 [B] Judul Opsi Kedua - Penjelasan singkat
 [C] Judul Opsi Ketiga - Penjelasan singkat
