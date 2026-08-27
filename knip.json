@@ -1,0 +1,5 @@
+{
+  "entry": ["src/taskpane/taskpane.ts", "src/commands/commands.ts"],
+  "project": ["src/**/*.{ts,js}"],
+  "ignoreDependencies": ["core-js"]
+}

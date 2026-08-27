@@ -1,4 +1,5 @@
 import { ToastService } from '@/core/services/ui/toast-service';
+import { fetchWithTimeout } from '@/core/utils/fetch';
 
 export class AutoUpdater {
     private currentVersion: string | null = null;
@@ -30,10 +31,7 @@ export class AutoUpdater {
 
     private async fetchVersion(): Promise<string | null> {
         try {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 10000);
-            const res = await fetch(`version.json?t=${Date.now()}`, { signal: controller.signal });
-            clearTimeout(timer);
+            const res = await fetchWithTimeout(`version.json?t=${Date.now()}`, {}, 10000);
             if (res.ok) {
                 const data = await res.json();
                 if (typeof data?.version === 'string') {

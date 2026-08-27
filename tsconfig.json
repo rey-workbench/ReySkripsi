@@ -9,6 +9,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
+    "types": ["@types/office-js"],
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "jsx": "react",

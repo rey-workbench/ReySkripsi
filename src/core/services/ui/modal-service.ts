@@ -1,6 +1,16 @@
 import styles from '@/core/components/css/modal.css';
 import btnStyles from '@/core/components/css/button.css';
-import { DOMService } from '@/core/services/ui/dom-service';
+function getOrCreateElement(id: string, className: string, innerHTML: string = ''): HTMLElement {
+    let el = document.getElementById(id);
+    if (!el) {
+        el = document.createElement('div');
+        el.id = id;
+        el.className = className;
+        if (innerHTML) el.innerHTML = innerHTML;
+        document.body.appendChild(el);
+    }
+    return el;
+}
 
 export class ModalService {
   public static showConfirmation(message: string): Promise<boolean> {
@@ -15,7 +25,7 @@ export class ModalService {
                 </div>
             </div>
         `;
-        const modal = DOMService.getOrCreateElement('confirmation-modal', styles.overlay, innerHTML);
+        const modal = getOrCreateElement('confirmation-modal', styles.overlay, innerHTML);
 
         const modalMessage = document.getElementById("modal-message");
         const btnCancel = document.getElementById("modal-btn-cancel");
@@ -61,7 +71,7 @@ export class ModalService {
                 </div>
             </div>
         `;
-        const modal = DOMService.getOrCreateElement('alert-modal', styles.overlay, innerHTML);
+        const modal = getOrCreateElement('alert-modal', styles.overlay, innerHTML);
         const modalMessage = document.getElementById("alert-message");
         const btnOk = document.getElementById("alert-btn-ok");
 
@@ -96,7 +106,7 @@ export class ModalService {
                 </div>
             </div>
         `;
-        modal = DOMService.getOrCreateElement('progress-modal', styles.overlay, innerHTML);
+        modal = getOrCreateElement('progress-modal', styles.overlay, innerHTML);
     }
     
     modal.style.display = "flex";
