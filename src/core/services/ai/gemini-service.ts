@@ -100,10 +100,9 @@ export class GeminiService implements IAiService {
                     parts: [{
                         functionCall: {
                             name: c.name,
-                            args: c.args,
-                            ...(c.thoughtSignature ? { thought_signature: c.thoughtSignature } : {})
+                            args: c.args
                         },
-                        ...(c.thoughtSignature ? { thought_signature: c.thoughtSignature } : {})
+                        ...(c.thoughtSignature ? { thoughtSignature: c.thoughtSignature } : {})
                     }],
                 })),
                 ...(options?.toolResults ?? []).map((r) => ({

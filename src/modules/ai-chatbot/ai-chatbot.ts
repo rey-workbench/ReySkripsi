@@ -199,7 +199,7 @@ export class AiChatbotModule implements IModule {
         messageEl.appendChild(textSpan);
 
         if (sender === "ai") {
-            this.appendOptionButtons(messageEl, text);
+            this.appendOptionButtons(messageEl, text, textSpan);
         }
 
         this.appendCitations(messageEl, citations);
@@ -248,47 +248,67 @@ export class AiChatbotModule implements IModule {
         el.appendChild(citationsContainer);
     }
 
-    private appendOptionButtons(el: HTMLElement, text: string): void {
-        const optionRegex = /(?:^|\n)\s*(?:\[([A-Z0-9])\]|([A-Z0-9])[\.\)])\s*([^\n]+)/g;
+    private appendOptionButtons(el: HTMLElement, text: string, textSpan: HTMLElement): void {
+        const optionRegex = /(?:^|\n)\s*(?:\*{0,2}\[([A-Z])\]\*{0,2}|\[([A-Z])\])\s*([^\n]+)/g;
         const matches = [...text.matchAll(optionRegex)];
         if (matches.length === 0) return;
+
+        // Bersihkan teks [A], [B], [C] dari badan pesan utama agar tidak dobel/duplikat
+        const cleanedText = text.replace(/(?:^|\n)\s*(?:\*{0,2}\[([A-Z])\]\*{0,2}|\[([A-Z])\])[^\n]+/g, "").trim();
+        textSpan.innerHTML = marked.parse(escapeHtml(cleanedText)) as string;
 
         const optionsContainer = document.createElement("div");
         optionsContainer.className = "ai-options-container";
         optionsContainer.style.marginTop = "10px";
         optionsContainer.style.display = "flex";
-        optionsContainer.style.flexWrap = "wrap";
+        optionsContainer.style.flexDirection = "column";
         optionsContainer.style.gap = "6px";
 
         matches.forEach((m) => {
             const label = m[1] || m[2];
-            const optionText = m[3].trim();
+            const rawContent = m[3].trim().replace(/^\*\*|\*\*$/g, "");
+            const parts = rawContent.split(/\s*[-–—:]\s*/);
+            const title = parts[0].trim().replace(/^\*\*|\*\*$/g, "");
+            const desc = parts.slice(1).join(" - ").trim().replace(/^\*\*|\*\*$/g, "");
+
             const btn = document.createElement("button");
-            btn.className = "ai-option-pill";
+            btn.className = "ai-option-card";
+            btn.style.width = "100%";
+            btn.style.textAlign = "left";
             btn.style.background = "#ffffff";
-            btn.style.border = "1px solid #0078d4";
-            btn.style.color = "#0078d4";
-            btn.style.borderRadius = "16px";
-            btn.style.padding = "4px 10px";
-            btn.style.fontSize = "12px";
-            btn.style.fontWeight = "500";
+            btn.style.border = "1px solid #d1d5db";
+            btn.style.borderRadius = "8px";
+            btn.style.padding = "8px 12px";
             btn.style.cursor = "pointer";
+            btn.style.display = "flex";
+            btn.style.alignItems = "center";
+            btn.style.gap = "10px";
             btn.style.transition = "all 0.15s ease";
-            btn.innerText = `${label}. ${optionText}`;
+
+            btn.innerHTML = `
+                <div style="width: 24px; height: 24px; border-radius: 6px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${label}</div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 600; font-size: 12.5px; color: #1e293b;">${escapeHtml(title)}</div>
+                    ${desc ? `<div style="font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(desc)}</div>` : ''}
+                </div>
+                <i class="ms-Icon ms-Icon--ChevronRight" style="font-size: 12px; color: #94a3b8; flex-shrink: 0;"></i>
+            `;
 
             btn.onmouseover = () => {
-                btn.style.background = "#0078d4";
-                btn.style.color = "#ffffff";
+                btn.style.borderColor = "#0078d4";
+                btn.style.background = "#f0f7ff";
+                btn.style.boxShadow = "0 2px 6px rgba(0, 120, 212, 0.12)";
             };
             btn.onmouseout = () => {
+                btn.style.borderColor = "#d1d5db";
                 btn.style.background = "#ffffff";
-                btn.style.color = "#0078d4";
+                btn.style.boxShadow = "none";
             };
 
             btn.onclick = () => {
                 const inputEl = document.getElementById("ai-chat-input") as HTMLTextAreaElement | null;
                 if (inputEl) {
-                    inputEl.value = optionText;
+                    inputEl.value = title;
                     inputEl.focus();
                     this.handleSend();
                 }
@@ -413,26 +433,29 @@ ${docContext.slice(0, 8000)}
 -----------------------
 
 PANDUAN INTERAKSI:
-1. Jika Anda memiliki tool (seperti scanDocument atau insertText), langsung eksekusi tool tersebut jika relevan tanpa meminta konfirmasi berulang jika maksud pengguna sudah jelas.
-2. Jika Anda perlu menanyakan pilihan, tindakan lanjutan, atau konfirmasi kepada pengguna, SELALU sediakan opsi pilihan rekomendasi yang jelas dalam format:
-[A] Opsi rekomendasi pertama
-[B] Opsi alternatif kedua
-[C] Opsi alternatif ketiga
-Atau pengguna dapat mengetikkan pilihan sendiri.`;
+1. Jika pengguna meminta tindakan pada dokumen dan tool tersedia (seperti scanDocument atau insertText), LANGSUNG jalankan tool tersebut tanpa meminta izin atau konfirmasi terlebih dahulu.
+2. JANGAN mengubah daftar bernomor penjelasan materi (misal: "1. Plagiarisme: ...") menjadi opsi pilihan.
+3. HANYA sertakan opsi jika Anda benar-benar memerlukan keputusan atau arah selanjutnya dari pengguna. Letakkan di paling akhir pesan dengan format persis:
+[A] Judul Opsi Pertama - Penjelasan singkat
+[B] Judul Opsi Kedua - Penjelasan singkat
+[C] Judul Opsi Ketiga - Penjelasan singkat
+Atau ketik pilihan sendiri.`;
 
             const isNvidia = isNvidiaModel(config.model);
+
+            let streamedMsgEl: HTMLElement | null = null;
 
             const aiOptions: IAiRequestOptions = {
                 history: this.chatHistory.slice(-10),
                 ...(isNvidia ? {} : {
                     tools: WORD_TOOLS,
                     onStream: (partial: string) => {
-                        if (!liveMsgEl) {
+                        if (!streamedMsgEl) {
                             if (loadingMsgEl && loadingMsgEl.parentNode) {
                                 loadingMsgEl.parentNode.removeChild(loadingMsgEl);
                             }
-                            liveMsgEl = this.appendMessage("ai", partial);
-                            liveBody = liveMsgEl.querySelector(".ai-message-body") as HTMLElement | null;
+                            streamedMsgEl = this.appendMessage("ai", partial);
+                            liveBody = streamedMsgEl.querySelector(".ai-message-body") as HTMLElement | null;
                         } else if (liveBody) {
                             liveBody.innerHTML = marked.parse(escapeHtml(partial)) as string;
                             const history = document.getElementById("ai-chat-history");
@@ -456,9 +479,13 @@ Atau pengguna dapat mengetikkan pilihan sendiri.`;
                 isNvidia ? undefined : executeWordTool
             );
 
-            if (liveMsgEl) {
-                this.appendOptionButtons(liveMsgEl, aiResponse);
-                this.appendCitations(liveMsgEl, citations);
+            const finalTargetEl = (streamedMsgEl || liveMsgEl) as HTMLElement | null;
+            if (finalTargetEl) {
+                const liveBody = finalTargetEl.querySelector(".ai-message-body") as HTMLElement | null;
+                if (liveBody) {
+                    this.appendOptionButtons(finalTargetEl, aiResponse, liveBody);
+                }
+                this.appendCitations(finalTargetEl, citations);
             } else {
                 if (loadingMsgEl && loadingMsgEl.parentNode) {
                     loadingMsgEl.parentNode.removeChild(loadingMsgEl);
