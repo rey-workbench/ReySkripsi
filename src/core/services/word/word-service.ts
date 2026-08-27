@@ -58,6 +58,9 @@ export class WordService {
           appliedCount += await scanner(execRange, false, cancellationToken, progressCallback, searchCache);
         }
 
+        // Bebaskan objek DOM Word dari memory cache setelah pemformatan selesai
+        searchCache.clear();
+
         ModalService.hideProgress();
         
         if (cancellationToken.isCancelled) {

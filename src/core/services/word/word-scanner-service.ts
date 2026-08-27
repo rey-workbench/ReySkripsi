@@ -27,7 +27,7 @@ export class WordScannerService {
         let searchCount = 0;
         let formatCount = 0;
 
-        const SEARCH_BATCH_SIZE = 25;
+        const SEARCH_BATCH_SIZE = 60;
 
         for (let batchStart = 0; batchStart < totalWords; batchStart += SEARCH_BATCH_SIZE) {
             if (cancellationToken?.isCancelled) break;

@@ -5,8 +5,16 @@ import { Stemmer } from 'sastrawijs';
 export class DictionaryService {
     private static kbbiDict: Set<string> | null = null;
     private static stemmer = new Stemmer();
+    private static readonly MAX_CACHE_SIZE = 5000;
     private static stemCache = new Map<string, string>();
     private static foreignCache = new Map<string, boolean>();
+
+    private static setCacheWithLimit<K, V>(map: Map<K, V>, key: K, value: V): void {
+        if (map.size >= this.MAX_CACHE_SIZE) {
+            map.clear();
+        }
+        map.set(key, value);
+    }
 
     public static async init(): Promise<void> {
         if (this.kbbiDict) return;
@@ -52,26 +60,32 @@ export class DictionaryService {
 
         const tokens = this.tokenizeWord(cacheKey);
         if (tokens.length === 0) {
-            this.foreignCache.set(cacheKey, false);
+            this.setCacheWithLimit(this.foreignCache, cacheKey, false);
             return false;
         }
 
         for (const token of tokens) {
+            // Short-circuit: jika token mentah sudah ada di KBBI, skip stemmer O(1)
+            if (this.kbbiDict.has(token)) {
+                this.setCacheWithLimit(this.foreignCache, cacheKey, false);
+                return false;
+            }
+
             let baseWord: string;
             const cached = this.stemCache.get(token);
             if (cached !== undefined) {
                 baseWord = cached;
             } else {
                 baseWord = this.stemmer.stem(token) ?? token;
-                this.stemCache.set(token, baseWord);
+                this.setCacheWithLimit(this.stemCache, token, baseWord);
             }
-            if (this.kbbiDict.has(token) || this.kbbiDict.has(baseWord)) {
-                this.foreignCache.set(cacheKey, false);
+            if (this.kbbiDict.has(baseWord)) {
+                this.setCacheWithLimit(this.foreignCache, cacheKey, false);
                 return false;
             }
         }
 
-        this.foreignCache.set(cacheKey, true);
+        this.setCacheWithLimit(this.foreignCache, cacheKey, true);
         return true;
     }
 
